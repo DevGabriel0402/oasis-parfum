@@ -2,6 +2,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @source "../node_modules/streamdown/dist/*.js";
+@import url("../public/catalogo-atacado-thumb.png");
+@import url("../public/catalogo-varejo-thumb.png");
 :root {
   font-family: "Roboto", Arial, sans-serif;
   color: #20342d;
@@ -717,11 +719,11 @@ td {
   justify-content: space-between;
 }
 .catalog-visual.varejo {
-  background-image: url("../public/catalogo-varejo-thumb.png") center cover no-repeat !important;
+  background-image: url("@/public/catalogo-varejo-thumb.png") center cover no-repeat !important;
   object-fit: contain;
 }
 .catalog-visual.atacado {
-  background-image: url("../public/catalogo-atacado-thumb.png") center cover no-repeat !important;
+  background-image: url("@/public/catalogo-atacado-thumb.png") center cover no-repeat !important;
   object-fit: contain;
 }
 .catalog-visual > span {

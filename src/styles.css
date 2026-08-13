@@ -728,8 +728,6 @@ td {
   border: 1px solid #ffffff55;
   padding: 7px 10px;
   border-radius: 20px;
-  filter: blur(5px);
-  backdrop-filter: blur(5px);
 }
 .catalog-link-body {
   padding: 25px;

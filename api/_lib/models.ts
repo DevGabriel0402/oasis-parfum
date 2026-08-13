@@ -49,6 +49,27 @@ const slugify = (value: string) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
 
+const currency = (value: number) => Math.round(value * 100) / 100;
+
+export function catalogPrice(
+  product: {
+    costPrice: number;
+    retailPrice: number;
+    wholesalePrice: number;
+  },
+  type: "varejo" | "atacado",
+) {
+  if (type === "atacado") {
+    const calculated = product.costPrice * 1.15;
+    return currency(
+      calculated > 0
+        ? calculated
+        : product.wholesalePrice || product.retailPrice,
+    );
+  }
+  return currency(product.retailPrice * 1.3);
+}
+
 export async function products() {
   await ensureSheet("Catálogo", CATALOG_HEADERS);
   const table = await getRows("Catálogo");
@@ -91,6 +112,16 @@ export async function products() {
             "Preço",
             "Valor",
             "Preço Unitário",
+          ]),
+        ),
+        costPrice: number(
+          pick(data, [
+            "PreÃ§o de Custo (R$)",
+            "Preço de Custo (R$)",
+            "PreÃ§o de Custo",
+            "Preço de Custo",
+            "Custo",
+            "Valor de Custo",
           ]),
         ),
         wholesalePrice: number(

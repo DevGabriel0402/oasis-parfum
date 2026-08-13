@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { fail, method } from "./_lib/http.js";
-import { products } from "./_lib/models.js";
+import { catalogPrice, products } from "./_lib/models.js";
 import { getConfig } from "./_lib/sheets.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -11,13 +11,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const table = await products();
     const items = table.items
       .filter((item) => item.active)
-      .map(({ raw, rowNumber, order, ...item }) => ({
-        ...item,
-        price:
-          type === "atacado"
-            ? item.wholesalePrice || item.retailPrice
-            : item.retailPrice,
-      }));
+      .map((product) => {
+        const { raw, rowNumber, order, costPrice, ...item } = product;
+        return { ...item, price: catalogPrice(product, type) };
+      });
     res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=300");
     return res.json({
       type,

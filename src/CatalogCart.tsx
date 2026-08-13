@@ -20,6 +20,7 @@ type Props = {
   onQuantity: (id: string, quantity: number) => void;
   onCheckout: () => void;
   whatsapp: string;
+  minimumQuantity?: number;
 };
 
 const money = (value: number) =>
@@ -38,6 +39,7 @@ export default function CatalogCart({
   onQuantity,
   onCheckout,
   whatsapp,
+  minimumQuantity = 1,
 }: Props) {
   const items = products.filter((product) => cart[product.id] > 0);
   const count = items.reduce((sum, product) => sum + cart[product.id], 0);
@@ -45,6 +47,8 @@ export default function CatalogCart({
     (sum, product) => sum + cart[product.id] * price(product),
     0,
   );
+  const remaining = Math.max(0, minimumQuantity - count);
+  const minimumReached = remaining === 0;
 
   return (
     <Sheet open={open} onOpenChange={(next) => !next && onClose()}>
@@ -109,6 +113,26 @@ export default function CatalogCart({
         </div>
 
         <footer>
+          {minimumQuantity > 1 && items.length > 0 ? (
+            <div
+              className={"cart-minimum " + (minimumReached ? "reached" : "pending")}
+              role="status"
+            >
+              <FiShoppingBag />
+              <div>
+                <strong>
+                  {minimumReached
+                    ? "Condição de atacado liberada"
+                    : `Adicione mais ${remaining} ${remaining === 1 ? "peça" : "peças"}`}
+                </strong>
+                <span>
+                  {minimumReached
+                    ? "Seu pedido já atingiu o mínimo de 5 peças."
+                    : "Complete 5 peças para finalizar com o valor de atacado."}
+                </span>
+              </div>
+            </div>
+          ) : null}
           <div className="cart-total">
             <span>Total</span>
             <strong>{money(total)}</strong>
@@ -116,7 +140,7 @@ export default function CatalogCart({
           <Button
             className="cart-checkout h-11 w-full"
             onClick={onCheckout}
-            disabled={!items.length || !whatsapp}
+            disabled={!items.length || !whatsapp || !minimumReached}
           >
             Finalizar pelo WhatsApp <FiArrowRight />
           </Button>

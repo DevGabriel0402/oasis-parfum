@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, lazy, Suspense, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
   Navigate,
@@ -20,6 +20,7 @@ import {
   FiHome,
   FiLogOut,
   FiMenu,
+  FiMessageCircle,
   FiPackage,
   FiPlus,
   FiSearch,
@@ -32,6 +33,8 @@ import {
 import { api } from "./api";
 import type { Order, Product } from "./types";
 import CatalogCart from "./CatalogCart";
+
+const Assistant = lazy(() => import("./Assistant"));
 
 const money = (value: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
@@ -162,6 +165,7 @@ const nav = [
   ["/produtos", "Produtos", FiPackage],
   ["/pedidos", "Pedidos", FiClipboard],
   ["/catalogos", "Catálogos", FiGrid],
+  ["/assistente", "Assistente", FiMessageCircle],
   ["/configuracoes", "Configurações", FiSettings],
 ] as const;
 function Shell({ done }: { done: () => void }) {
@@ -234,6 +238,20 @@ function Shell({ done }: { done: () => void }) {
               <Route path="/produtos" element={<Products />} />
               <Route path="/pedidos" element={<Orders />} />
               <Route path="/catalogos" element={<CatalogLinks />} />
+              <Route
+                path="/assistente"
+                element={
+                  <Suspense
+                    fallback={
+                      <div className="loading-row">
+                        <span className="loader" /> Carregando assistente…
+                      </div>
+                    }
+                  >
+                    <Assistant />
+                  </Suspense>
+                }
+              />
               <Route path="/configuracoes" element={<Settings />} />
               <Route path="*" element={<Navigate to="/dashboard" />} />
             </Routes>
@@ -953,6 +971,7 @@ function PublicCatalog() {
     [loading, setLoading] = useState(true),
     [cart, setCart] = useState<Record<string, number>>({}),
     [cartOpen, setCartOpen] = useState(false);
+  const isWholesale = type === "atacado";
   useEffect(() => {
     api
       .catalog(type)
@@ -969,8 +988,7 @@ function PublicCatalog() {
     ),
     count = Object.values(cart).reduce((a, b) => a + b, 0),
     price = (p: Product) =>
-      Number((p as Product & { price: number }).price || p.retailPrice),
-    total = products.reduce((sum, p) => sum + (cart[p.id] || 0) * price(p), 0);
+      Number((p as Product & { price: number }).price || p.retailPrice);
   async function updateQuantity(id: string, quantity: number) {
     setCart((current) => {
       const next = { ...current };
@@ -984,6 +1002,10 @@ function PublicCatalog() {
     setCartOpen(true);
   }
   async function checkout() {
+    if (isWholesale && count < 5) {
+      setCartOpen(true);
+      return;
+    }
     const selected = products.filter((p) => cart[p.id]),
       lines = selected.map(
         (p) =>
@@ -1036,17 +1058,27 @@ function PublicCatalog() {
       </header>
       <section className="hero">
         <motion.div {...fade}>
-          <span className="eyebrow">COLEÇÃO OASIS · {type.toUpperCase()}</span>
+          <span className="eyebrow">
+            {isWholesale
+              ? "CONDIÇÃO ESPECIAL PARA REVENDEDORES"
+              : "UMA FRAGRÂNCIA PARA SER LEMBRADA"}
+          </span>
           <h1>
-            Encontre a essência
+            {isWholesale ? "Mais margem para" : "Sua presença começa"}
             <br />
-            que é só sua.
+            {isWholesale ? "o seu negócio." : "antes das palavras."}
           </h1>
           <p>
-            Fragrâncias selecionadas para transformar presença em lembrança.
+            {isWholesale
+              ? "Monte seu pedido com 5 peças ou mais e aproveite os valores especiais de atacado da Oasis Parfums."
+              : "Escolha a fragrância que traduz sua personalidade e transforme cada chegada em uma impressão inesquecível."}
           </p>
+          <div className="hero-benefits" aria-label="Vantagens do catálogo">
+            <span><FiCheck /> {isWholesale ? "A partir de 5 peças" : "Curadoria selecionada"}</span>
+            <span><FiCheck /> {isWholesale ? "Mix livre de fragrâncias" : "Escolha com personalidade"}</span>
+          </div>
           <a className="button light" href="#colecao">
-            Explorar coleção <FiArrowRight />
+            {isWholesale ? "Montar pedido de atacado" : "Encontrar minha fragrância"} <FiArrowRight />
           </a>
         </motion.div>
         <div className="hero-bottle">
@@ -1059,6 +1091,22 @@ function PublicCatalog() {
         </div>
       </section>
       <section className="collection" id="colecao">
+        <motion.aside className="catalog-notice" {...fade}>
+          <div className="catalog-notice-icon"><FiCheck /></div>
+          <div>
+            <strong>
+              {isWholesale
+                ? "Atacado liberado a partir de 5 peças"
+                : "Escolha uma fragrância que fale por você"}
+            </strong>
+            <p>
+              {isWholesale
+                ? "Combine fragrâncias diferentes no mesmo pedido. Ao completar 5 peças, sua condição especial de atacado é liberada."
+                : "Descubra aromas marcantes e encontre aquele que transforma presença em assinatura."}
+            </p>
+          </div>
+          <span>{isWholesale ? "MÍNIMO 5 PEÇAS" : "SUA ESSÊNCIA, SUA MARCA"}</span>
+        </motion.aside>
         <div className="collection-head">
           <div>
             <span className="eyebrow">NOSSA CURADORIA</span>
@@ -1118,6 +1166,7 @@ function PublicCatalog() {
         onQuantity={updateQuantity}
         onCheckout={checkout}
         whatsapp={whatsapp}
+        minimumQuantity={isWholesale ? 5 : 1}
       />
       <footer id="sobre">
         <Brand />

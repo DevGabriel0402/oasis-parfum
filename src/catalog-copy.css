@@ -1,0 +1,142 @@
+.hero > div:first-child {
+  max-width: 690px;
+}
+
+.hero p {
+  max-width: 620px;
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.hero-benefits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  margin: -8px 0 28px;
+  color: #d4d4d4;
+  font-size: 12px;
+}
+
+.hero-benefits span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.hero-benefits svg {
+  color: #fff;
+}
+
+.catalog-notice {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 46px;
+  padding: 20px 22px;
+  border: 1px solid #d4d4d4;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.catalog-notice-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 50%;
+  background: #0a0a0a;
+  color: #fff;
+}
+
+.catalog-notice strong {
+  display: block;
+  margin-bottom: 4px;
+  font: 600 18px "Playfair Display", serif;
+}
+
+.catalog-notice p {
+  margin: 0;
+  color: #666;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.catalog-notice > span {
+  padding: 8px 10px;
+  border: 1px solid #d4d4d4;
+  border-radius: 999px;
+  color: #333;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+}
+
+.cart-minimum {
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+  margin-bottom: 18px;
+  padding: 13px;
+  border: 1px solid #d4d4d4;
+  border-radius: 10px;
+  background: #fafafa;
+}
+
+.cart-minimum > svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.cart-minimum div {
+  display: grid;
+  gap: 3px;
+}
+
+.cart-minimum strong {
+  font-size: 12px;
+}
+
+.cart-minimum span {
+  color: #6b6b6b;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.cart-minimum.reached {
+  border-color: #0a0a0a;
+  background: #0a0a0a;
+  color: #fff;
+}
+
+.cart-minimum.reached span {
+  color: #cfcfcf;
+}
+
+@media (max-width: 720px) {
+  .catalog-notice {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .catalog-notice > span {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-benefits {
+    display: grid;
+  }
+
+  .catalog-notice {
+    gap: 13px;
+    padding: 17px;
+  }
+
+  .catalog-notice-icon {
+    width: 36px;
+    height: 36px;
+  }
+}

@@ -1,6 +1,11 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { fail, method } from "./_lib/http.js";
-import { newId, ORDER_HEADERS, products } from "./_lib/models.js";
+import {
+  catalogPrice,
+  newId,
+  ORDER_HEADERS,
+  products,
+} from "./_lib/models.js";
 import { appendObject, ensureSheet } from "./_lib/sheets.js";
 
 type CheckoutItem = {
@@ -30,12 +35,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       );
       if (!product)
         throw new Error("Um produto do pedido não está mais disponível.");
-      const unitPrice =
-        type === "atacado"
-          ? product.wholesalePrice || product.retailPrice
-          : product.retailPrice;
+      const unitPrice = catalogPrice(product, type);
       return { id: product.id, name: product.name, quantity, unitPrice };
     });
+    const quantity = items.reduce((sum, item) => sum + item.quantity, 0);
+    if (type === "atacado" && quantity < 5)
+      return res.status(400).json({
+        error: "O pedido de atacado exige no mínimo 5 peças.",
+      });
     const total = items.reduce(
         (sum, item) => sum + item.quantity * item.unitPrice,
         0,
@@ -48,7 +55,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       Telefone: String(body.phone || ""),
       Tipo: type,
       Itens: items.map((item) => item.quantity + "x " + item.name).join(" | "),
-      Quantidade: items.reduce((sum, item) => sum + item.quantity, 0),
+      Quantidade: quantity,
       Total: total,
       Status: "Novo",
       Observações: "Pedido iniciado no catálogo público",

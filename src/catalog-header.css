@@ -1,19 +1,19 @@
 .public-header-actions {
-    display: flex;
-    align-items: center;
-    gap: 18px
+  display: flex;
+  align-items: center;
+  gap: 18px;
 }
 
-@media(max-width:540px) {
-    .catalog-type {
-        display: none
-    }
+@media (max-width: 540px) {
+  .catalog-type {
+    display: none;
+  }
 
-    .catalog-cart-button span {
-        display: none
-    }
+  .catalog-cart-button span {
+    display: none;
+  }
 
-    .catalog-cart-button {
-        padding: 0 12px
-    }
+  .catalog-cart-button {
+    padding: 0 12px;
+  }
 }

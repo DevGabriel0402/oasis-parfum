@@ -21,6 +21,7 @@ import {
   FiGrid,
   FiHome,
   FiHash,
+  FiList,
   FiLogOut,
   FiMenu,
   FiMessageCircle,
@@ -40,6 +41,7 @@ import { api } from "./api";
 import type { Order, Product } from "./types";
 import CatalogCart from "./CatalogCart";
 import type { CheckoutCustomer } from "./CheckoutDialog";
+import OrderDetailsDialog from "./OrderDetailsDialog";
 
 const Assistant = lazy(() => import("./Assistant"));
 
@@ -715,7 +717,9 @@ function ProductModal({
 function Orders() {
   const [orders, setOrders] = useState<Order[]>([]),
     [error, setError] = useState(""),
-    [loading, setLoading] = useState(true);
+    [loading, setLoading] = useState(true),
+    [selectedOrder, setSelectedOrder] = useState<Order | null>(null),
+    [updatingId, setUpdatingId] = useState("");
   function loadOrders() {
     setLoading(true);
     setError("");
@@ -728,6 +732,22 @@ function Orders() {
   useEffect(() => {
     loadOrders();
   }, []);
+  async function markDelivered(order: Order) {
+    if (order.status.toLowerCase() === "entregue") return;
+    setUpdatingId(order.id);
+    setError("");
+    try {
+      await api.updateOrderStatus(order.id, "Entregue");
+      const update = (item: Order) =>
+        item.id === order.id ? { ...item, status: "Entregue" } : item;
+      setOrders((current) => current.map(update));
+      setSelectedOrder((current) => (current ? update(current) : current));
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Não foi possível atualizar o pedido.");
+    } finally {
+      setUpdatingId("");
+    }
+  }
   return (
     <>
       <PageHead
@@ -748,34 +768,51 @@ function Orders() {
             <table className="orders-table">
               <thead>
                 <tr>
-                  <th><span className="order-column-head"><FiHash />Pedido</span></th>
+                  <th aria-label="Visualizar"><span className="order-column-head"><FiList /></span></th>
+                  <th><span className="order-column-head"><FiHash />Nº do pedido</span></th>
                   <th><span className="order-column-head"><FiUser />Cliente</span></th>
                   <th><span className="order-column-head"><FiPhone />Contato</span></th>
-                  <th><span className="order-column-head"><FiShoppingBag />Tipo</span></th>
-                  <th><span className="order-column-head"><FiPackage />Produtos</span></th>
-                  <th><span className="order-column-head"><FiMessageCircle />Observações</span></th>
-                  <th><span className="order-column-head"><FiCalendar />Data</span></th>
                   <th><span className="order-column-head"><FiDollarSign />Total</span></th>
-                  <th><span className="order-column-head"><FiCheck />Status</span></th>
+                  <th><span className="order-column-head"><FiCalendar />Data</span></th>
+                  <th><span className="order-column-head"><FiCheck />Entrega</span></th>
                 </tr>
               </thead>
               <tbody>
                 {[...orders].reverse().map((o) => (
                   <tr key={o.id}>
+                    <td>
+                      <button
+                        type="button"
+                        className="order-list-button"
+                        onClick={() => setSelectedOrder(o)}
+                        aria-label={`Visualizar pedido ${o.id}`}
+                        title="Visualizar, imprimir ou salvar em PDF"
+                      >
+                        <FiList />
+                      </button>
+                    </td>
                     <td><b className="order-id">{o.id}</b></td>
                     <td><span className="order-customer">{o.customer || "—"}</span></td>
                     <td>
                       {o.phone ? <a className="order-contact" href={"tel:" + o.phone}>{o.phone}</a> : "—"}
                     </td>
-                    <td><span className="order-type">{o.type || "varejo"}</span></td>
-                    <td className="order-products">
-                      <span>{o.items || "—"}</span>
-                      <small>{o.quantity || 0} {o.quantity === 1 ? "peça" : "peças"}</small>
-                    </td>
-                    <td className="order-notes">{o.notes || "—"}</td>
-                    <td>{date(o.date)}</td>
                     <td><b>{money(o.total)}</b></td>
-                    <td><span className="order-status"><Badge>{o.status}</Badge></span></td>
+                    <td>{date(o.date)}</td>
+                    <td>
+                      {o.status.toLowerCase() === "entregue" ? (
+                        <span className="order-done"><FiCheck />Feito</span>
+                      ) : (
+                        <button
+                          type="button"
+                          className="order-deliver-button"
+                          disabled={updatingId === o.id}
+                          onClick={() => markDelivered(o)}
+                        >
+                          <FiCheck />
+                          {updatingId === o.id ? "Salvando..." : "Marcar entregue"}
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -791,6 +828,13 @@ function Orders() {
           />
         )}
       </section>
+      <OrderDetailsDialog
+        order={selectedOrder}
+        open={Boolean(selectedOrder)}
+        updating={Boolean(selectedOrder && updatingId === selectedOrder.id)}
+        onOpenChange={(open) => !open && setSelectedOrder(null)}
+        onDelivered={markDelivered}
+      />
     </>
   );
 }
@@ -1051,6 +1095,29 @@ function PublicCatalog() {
     [cart, setCart] = useState<Record<string, number>>({}),
     [cartOpen, setCartOpen] = useState(false);
   const isWholesale = type === "atacado";
+  useEffect(() => {
+    const pageTitle = isWholesale
+      ? "Catálogo de Atacado | Oasis Imports"
+      : "Catálogo de Varejo | Oasis Imports";
+    const description = isWholesale
+      ? "Condições especiais em perfumes importados para pedidos a partir de 5 peças."
+      : "Descubra perfumes importados selecionados para momentos inesquecíveis.";
+    const image = `${window.location.origin}/catalogo-${isWholesale ? "atacado" : "varejo"}-thumb.png`;
+    document.title = pageTitle;
+    const updates = [
+      ['meta[property="og:title"]', pageTitle],
+      ['meta[property="og:description"]', description],
+      ['meta[property="og:url"]', window.location.href],
+      ['meta[property="og:image"]', image],
+      ['meta[name="twitter:title"]', pageTitle],
+      ['meta[name="twitter:description"]', description],
+      ['meta[name="twitter:image"]', image],
+      ['meta[name="description"]', description],
+    ];
+    updates.forEach(([selector, content]) =>
+      document.querySelector(selector)?.setAttribute("content", content),
+    );
+  }, [isWholesale]);
   useEffect(() => {
     api
       .catalog(type)

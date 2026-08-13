@@ -20,6 +20,12 @@ export type Order = {
   phone: string;
   type: string;
   items: string;
+  lines?: Array<{
+    id: string;
+    name: string;
+    quantity: number;
+    unitPrice: number;
+  }>;
   quantity: number;
   total: number;
   status: string;

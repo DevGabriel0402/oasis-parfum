@@ -35,6 +35,11 @@ export const api = {
       body: JSON.stringify(product),
     }),
   orders: () => request<{ orders: import("./types").Order[] }>("/api/orders"),
+  updateOrderStatus: (id: string, status: "Novo" | "Entregue") =>
+    request<{ ok: boolean; id: string; status: string }>("/api/orders", {
+      method: "PUT",
+      body: JSON.stringify({ id, status }),
+    }),
   catalog: (type: string) =>
     request<{
       products: import("./types").Product[];

@@ -10,5 +10,8 @@ export default defineConfig({
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
+  optimizeDeps: {
+    exclude: ["@react-pdf/renderer", "@react-pdf/layout", "yoga-layout"],
+  },
   server: { port: 5173 },
 });

@@ -62,6 +62,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       Telefone: phone,
       Tipo: type,
       Itens: items.map((item) => item.quantity + "x " + item.name).join(" | "),
+      "Detalhes dos Itens": JSON.stringify(items),
       Quantidade: quantity,
       Total: total,
       Status: "Novo",

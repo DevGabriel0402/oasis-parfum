@@ -43,6 +43,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       Itens: items
         .map((item: any) => `${item.quantity}x ${item.name}`)
         .join(" | "),
+      "Detalhes dos Itens": JSON.stringify(
+        items.map((item: any) => ({
+          id: String(item.id || ""),
+          name: String(item.name || ""),
+          quantity: Number(item.quantity || 0),
+          unitPrice: Number(item.unitPrice || 0),
+        })),
+      ),
       Quantidade: items.reduce(
         (sum: number, item: any) => sum + Number(item.quantity || 0),
         0,

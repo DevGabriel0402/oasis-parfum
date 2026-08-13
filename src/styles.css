@@ -717,12 +717,11 @@ td {
   justify-content: space-between;
 }
 .catalog-visual.varejo {
-  background: url("https://diariodocomercio.com.br/wp-content/uploads/2023/05/Design-sem-nome-55.jpg");
+  background-image: url("../public/catalogo-varejo-thumb.png") center cover no-repeat;
   object-fit: cover;
 }
 .catalog-visual.atacado {
-  background: url("https://serranoticiario.com.br/wp-content/smush-webp/2026/02/WhatsApp-Image-2026-02-03-at-12.27.32.jpeg.webp");
-  object-fit: cover;
+  background-image: url("../public/catalogo-atacado-thumb.png") center cover no-repeat;
 }
 .catalog-visual > span {
   font-size: 9px;

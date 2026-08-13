@@ -3,5 +3,18 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "functions": { "api/**/*.ts": { "maxDuration": 60 } },
-  "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }]
+  "rewrites": [
+    {
+      "source": "/catalogo/:type(varejo|atacado)",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(facebookexternalhit|Facebot|Twitterbot|LinkedInBot|WhatsApp|Slackbot|TelegramBot|Discordbot|Pinterestbot)"
+        }
+      ],
+      "destination": "/api/catalog-meta?type=:type"
+    },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ]
 }

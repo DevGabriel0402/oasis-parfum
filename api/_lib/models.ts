@@ -24,6 +24,7 @@ export const ORDER_HEADERS = [
   "Telefone",
   "Tipo",
   "Itens",
+  "Detalhes dos Itens",
   "Quantidade",
   "Total",
   "Status",
@@ -154,18 +155,35 @@ export async function products() {
 export async function orders() {
   await ensureSheet("Pedidos", ORDER_HEADERS);
   const table = await getRows("Pedidos");
-  return table.rows.map(({ data, rowNumber }) => ({
+  return table.rows.map(({ data, rowNumber }) => {
+    const rawDetails = String(pick(data, ["Detalhes dos Itens", "Itens JSON"], ""));
+    let lines: Array<{ id: string; name: string; quantity: number; unitPrice: number }> = [];
+    try {
+      const parsed = JSON.parse(rawDetails);
+      if (Array.isArray(parsed))
+        lines = parsed.map((line) => ({
+          id: String(line.id || ""),
+          name: String(line.name || ""),
+          quantity: number(line.quantity),
+          unitPrice: number(line.unitPrice),
+        }));
+    } catch {
+      lines = [];
+    }
+    return {
     id: String(pick(data, ["ID", "Pedido", "Número"], `legacy-${rowNumber}`)),
     date: String(pick(data, ["Data", "Criado em", "Data/Hora"])),
     customer: String(pick(data, ["Cliente", "Nome"])),
     phone: String(pick(data, ["Telefone", "WhatsApp", "Celular"])),
     type: String(pick(data, ["Tipo", "Tabela"], "varejo")).toLowerCase(),
     items: String(pick(data, ["Itens", "Produtos", "Pedido"])),
+    lines,
     quantity: number(pick(data, ["Quantidade", "Qtd"])),
     total: number(pick(data, ["Total", "Valor Total", "Valor"])),
     status: String(pick(data, ["Status", "Situação"], "Novo")),
     notes: String(pick(data, ["Observações", "Obs"])),
-  }));
+    };
+  });
 }
 export const newId = (prefix: string) =>
   `${prefix}-${randomUUID().split("-")[0].toUpperCase()}`;

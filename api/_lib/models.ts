@@ -9,9 +9,9 @@ const slugify = (value:string) => value.normalize('NFD').replace(/[\u0300-\u036f
 
 export async function products(){
   await ensureSheet('Catálogo',CATALOG_HEADERS); const table=await getRows('Catálogo')
-  return {...table,items:table.rows.map(({data,rowNumber},order)=>{ const name=String(pick(data,['Produto','Nome','Perfume','Descrição do Produto'])); const id=String(pick(data,['ID','Código','Codigo'],`legacy-${rowNumber}`)); return {
-    id,name,brand:String(pick(data,['Marca','Fornecedor'])),description:String(pick(data,['Descrição','Descricao','Detalhes'])),image:String(pick(data,['Imagem','Foto','URL Imagem','Link da Imagem'])),
-    retailPrice:number(pick(data,['Preço Varejo','Preco Varejo','Preço','Valor','Preço Unitário'])),wholesalePrice:number(pick(data,['Preço Atacado','Preco Atacado','Atacado'])),stock:number(pick(data,['Estoque','Quantidade','Qtd'])),category:String(pick(data,['Categoria','Família Olfativa'],'Perfumes')),
+  return {...table,items:table.rows.map(({data,rowNumber},order)=>{ const name=String(pick(data,['Produto','Nome Produto','Nome','Perfume','Descrição do Produto'])); const id=String(pick(data,['ID','Código','Codigo'],`legacy-${rowNumber}`)); return {
+    id,name,brand:String(pick(data,['Marca','Fornecedor'])),description:String(pick(data,['Descrição','Descricao','Detalhes','Nome Inspirado'])),image:String(pick(data,['Imagem','URL Image','Foto','URL Imagem','Link da Imagem'])),
+    retailPrice:number(pick(data,['Preço Varejo','Preço de Venda (+35%)','Preco Varejo','Preço','Valor','Preço Unitário'])),wholesalePrice:number(pick(data,['Preço Atacado','Preco Atacado','Atacado'])),stock:number(pick(data,['Estoque','Quantidade','Qtd'])),category:String(pick(data,['Categoria','Família Olfativa'],'Perfumes')),
     active:bool(pick(data,['Ativo','Status'],'true')),featured:bool(pick(data,['Destaque'],'false'),false),wholesaleMinimum:Math.max(1,number(pick(data,['Quantidade Mínima Atacado','Qtd Mínima','Minimo Atacado'],1))),slug:String(pick(data,['Slug'],slugify(name)||id)),rowNumber,raw:data,order
   }})}
 }

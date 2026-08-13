@@ -710,17 +710,19 @@ td {
 }
 .catalog-visual {
   height: 190px;
-  padding: 25px;
+  padding: 4px;
   color: white;
   display: flex;
   align-items: start;
   justify-content: space-between;
 }
 .catalog-visual.varejo {
-  background: linear-gradient(145deg, #254c3e, #102f25);
+  background: url("https://diariodocomercio.com.br/wp-content/uploads/2023/05/Design-sem-nome-55.jpg");
+  object-fit: cover;
 }
 .catalog-visual.atacado {
-  background: linear-gradient(145deg, #9d7f55, #4d3d29);
+  background: url("https://serranoticiario.com.br/wp-content/smush-webp/2026/02/WhatsApp-Image-2026-02-03-at-12.27.32.jpeg.webp");
+  object-fit: cover;
 }
 .catalog-visual > span {
   font-size: 9px;

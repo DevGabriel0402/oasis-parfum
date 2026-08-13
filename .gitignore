@@ -25,5 +25,4 @@ dist-ssr
 
 # Pastas de trabalho / arquivos pesados
 work/
-
 .env*.local

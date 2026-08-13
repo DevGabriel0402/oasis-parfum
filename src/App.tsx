@@ -901,7 +901,6 @@ function CatalogLinks() {
         {links.map(([type, title, text]) => (
           <section className="catalog-link" key={type}>
             <div className={"catalog-visual " + type}>
-              <Brand />
               <span>{type.toUpperCase()}</span>
             </div>
             <div className="catalog-link-body">

@@ -301,6 +301,24 @@ textarea:focus {
   backdrop-filter: blur(14px);
 }
 
+.sticky-site-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  transition:
+    box-shadow 220ms ease,
+    border-color 220ms ease,
+    background-color 220ms ease,
+    backdrop-filter 220ms ease;
+}
+
+.sticky-site-header.is-scrolled {
+  border-bottom-color: rgb(10 10 10 / 0.16);
+  background: rgb(255 255 255 / 0.98);
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.07);
+  backdrop-filter: blur(18px);
+}
+
 .page {
   max-width: 1540px;
   margin: 0 auto;
@@ -462,9 +480,18 @@ tbody tr:hover {
   box-shadow: 0 24px 80px rgb(0 0 0 / 0.2);
 }
 
-.catalog-visual.varejo,
+.catalog-visual.varejo {
+  background: url("/catalogo-varejo-thumb.png") center / cover no-repeat;
+}
+
 .catalog-visual.atacado {
-  background: #0a0a0a;
+  background: url("/catalogo-atacado-thumb.png") center / cover no-repeat;
+}
+
+.shop-action strong {
+  display: inline-flex;
+  color: #0a0a0a;
+  opacity: 1;
 }
 
 .copy-field {

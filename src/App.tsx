@@ -22,6 +22,7 @@ import {
   FiHome,
   FiHash,
   FiList,
+  FiEye,
   FiLogOut,
   FiMenu,
   FiMessageCircle,
@@ -59,6 +60,17 @@ const fade = {
   exit: { opacity: 0, y: -6 },
   transition: { duration: 0.28 },
 };
+
+function useHeaderScrolled(threshold = 10) {
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const update = () => setScrolled(window.scrollY >= threshold);
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    return () => window.removeEventListener("scroll", update);
+  }, [threshold]);
+  return scrolled;
+}
 
 export default function App() {
   const [status, setStatus] = useState<"loading" | "in" | "out">("loading");
@@ -177,6 +189,7 @@ function Shell({ done }: { done: () => void }) {
   const [open, setOpen] = useState(false),
     location = useLocation(),
     navigate = useNavigate();
+  const headerScrolled = useHeaderScrolled();
   async function logout() {
     await api.logout().catch(() => {});
     done();
@@ -187,10 +200,7 @@ function Shell({ done }: { done: () => void }) {
       <aside className={"sidebar " + (open ? "open" : "")}>
         <div className="side-top">
           <Brand />
-          <button
-            className="icon-button mobile-only"
-            onClick={() => setOpen(false)}
-          >
+          <button className="icon-button mobile-only" onClick={() => setOpen(false)}>
             <FiX />
           </button>
         </div>
@@ -214,23 +224,17 @@ function Shell({ done }: { done: () => void }) {
           </button>
         </div>
       </aside>
-      {open && (
-        <div className="backdrop mobile-only" onClick={() => setOpen(false)} />
-      )}
+      {open && <div className="backdrop mobile-only" onClick={() => setOpen(false)} />}
       <main className="workspace">
-        <header className="topbar">
-          <button
-            className="icon-button mobile-only"
-            onClick={() => setOpen(true)}
-          >
+        <header
+          className={`topbar sticky-site-header${headerScrolled ? " is-scrolled" : ""}`}
+        >
+          <button className="icon-button mobile-only" onClick={() => setOpen(true)}>
             <FiMenu />
           </button>
           <div>
-              <span className="eyebrow">OASIS IMPORTS</span>
-            <b>
-              {nav.find((x) => location.pathname.startsWith(x[0]))?.[1] ||
-                "Painel"}
-            </b>
+            <span className="eyebrow">OASIS IMPORTS</span>
+            <b>{nav.find((x) => location.pathname.startsWith(x[0]))?.[1] || "Painel"}</b>
           </div>
           <a className="button soft" href="/catalogo/varejo" target="_blank">
             Ver catálogo <FiArrowRight />
@@ -332,12 +336,7 @@ function Stat(p: {
     </div>
   );
 }
-function Quick(p: {
-  icon: React.ReactNode;
-  title: string;
-  text: string;
-  to: string;
-}) {
+function Quick(p: { icon: React.ReactNode; title: string; text: string; to: string }) {
   return (
     <NavLink className="quick-link" to={p.to}>
       <span>{p.icon}</span>
@@ -394,17 +393,13 @@ function Dashboard() {
         <Stat
           icon={<FiBox />}
           label="Produtos ativos"
-          value={
-            loading ? "—" : String(products.filter((p) => p.active).length)
-          }
+          value={loading ? "—" : String(products.filter((p) => p.active).length)}
           hint={products.length + " cadastrados"}
         />
         <Stat
           icon={<FiPackage />}
           label="Estoque baixo"
-          value={
-            loading ? "—" : String(products.filter((p) => p.stock <= 5).length)
-          }
+          value={loading ? "—" : String(products.filter((p) => p.stock <= 5).length)}
           hint="5 unidades ou menos"
           tone="sand"
         />
@@ -545,11 +540,7 @@ function Products() {
         ) : shown.length ? (
           <div className="product-grid">
             {shown.map((p) => (
-              <button
-                className="product-card"
-                key={p.id}
-                onClick={() => setEditing(p)}
-              >
+              <button className="product-card" key={p.id} onClick={() => setEditing(p)}>
                 <div className="product-image">
                   {p.image ? <img src={p.image} alt="" /> : <span>O</span>}
                   {p.featured && <em>Destaque</em>}
@@ -605,8 +596,7 @@ function ProductModal({
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       setForm({
         ...form,
-        [key]:
-          e.target.type === "number" ? Number(e.target.value) : e.target.value,
+        [key]: e.target.type === "number" ? Number(e.target.value) : e.target.value,
       });
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -692,11 +682,7 @@ function ProductModal({
           </label>
           <label className="wide">
             Descrição
-            <textarea
-              rows={3}
-              value={form.description}
-              onChange={field("description")}
-            />
+            <textarea rows={3} value={form.description} onChange={field("description")} />
           </label>
         </div>
         {error && <p className="form-error">{error}</p>}
@@ -743,7 +729,9 @@ function Orders() {
       setOrders((current) => current.map(update));
       setSelectedOrder((current) => (current ? update(current) : current));
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Não foi possível atualizar o pedido.");
+      setError(
+        reason instanceof Error ? reason.message : "Não foi possível atualizar o pedido.",
+      );
     } finally {
       setUpdatingId("");
     }
@@ -768,13 +756,47 @@ function Orders() {
             <table className="orders-table">
               <thead>
                 <tr>
-                  <th aria-label="Visualizar"><span className="order-column-head"><FiList /></span></th>
-                  <th><span className="order-column-head"><FiHash />Nº do pedido</span></th>
-                  <th><span className="order-column-head"><FiUser />Cliente</span></th>
-                  <th><span className="order-column-head"><FiPhone />Contato</span></th>
-                  <th><span className="order-column-head"><FiDollarSign />Total</span></th>
-                  <th><span className="order-column-head"><FiCalendar />Data</span></th>
-                  <th><span className="order-column-head"><FiCheck />Entrega</span></th>
+                  <th aria-label="Visualizar">
+                    <span className="order-column-head">
+                      <FiList />
+                    </span>
+                  </th>
+                  <th>
+                    <span className="order-column-head">
+                      <FiHash />
+                      Nº do pedido
+                    </span>
+                  </th>
+                  <th>
+                    <span className="order-column-head">
+                      <FiUser />
+                      Cliente
+                    </span>
+                  </th>
+                  <th>
+                    <span className="order-column-head">
+                      <FiPhone />
+                      Contato
+                    </span>
+                  </th>
+                  <th>
+                    <span className="order-column-head">
+                      <FiDollarSign />
+                      Total
+                    </span>
+                  </th>
+                  <th>
+                    <span className="order-column-head">
+                      <FiCalendar />
+                      Data
+                    </span>
+                  </th>
+                  <th>
+                    <span className="order-column-head">
+                      <FiCheck />
+                      Entrega
+                    </span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -788,19 +810,34 @@ function Orders() {
                         aria-label={`Visualizar pedido ${o.id}`}
                         title="Visualizar, imprimir ou salvar em PDF"
                       >
-                        <FiList />
+                        <FiEye />
                       </button>
                     </td>
-                    <td><b className="order-id">{o.id}</b></td>
-                    <td><span className="order-customer">{o.customer || "—"}</span></td>
                     <td>
-                      {o.phone ? <a className="order-contact" href={"tel:" + o.phone}>{o.phone}</a> : "—"}
+                      <b className="order-id">{o.id}</b>
                     </td>
-                    <td><b>{money(o.total)}</b></td>
+                    <td>
+                      <span className="order-customer">{o.customer || "—"}</span>
+                    </td>
+                    <td>
+                      {o.phone ? (
+                        <a className="order-contact" href={"tel:" + o.phone}>
+                          {o.phone}
+                        </a>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td>
+                      <b>{money(o.total)}</b>
+                    </td>
                     <td>{date(o.date)}</td>
                     <td>
                       {o.status.toLowerCase() === "entregue" ? (
-                        <span className="order-done"><FiCheck />Feito</span>
+                        <span className="order-done">
+                          <FiCheck />
+                          Feito
+                        </span>
                       ) : (
                         <button
                           type="button"
@@ -819,7 +856,10 @@ function Orders() {
             </table>
           </div>
         ) : loading ? (
-          <div className="loading-row"><span className="loader" />Carregando pedidos...</div>
+          <div className="loading-row">
+            <span className="loader" />
+            Carregando pedidos...
+          </div>
         ) : (
           <Empty
             icon={<FiShoppingBag />}
@@ -843,11 +883,7 @@ function CatalogLinks() {
     [done, setDone] = useState("");
   const links = [
     ["varejo", "Catálogo de varejo", "Preços para o consumidor final."],
-    [
-      "atacado",
-      "Catálogo de atacado",
-      "Valores e quantidades para revendedores.",
-    ],
+    ["atacado", "Catálogo de atacado", "Valores e quantidades para revendedores."],
   ];
   async function copy(type: string) {
     await navigator.clipboard.writeText(origin + "/catalogo/" + type);
@@ -872,18 +908,12 @@ function CatalogLinks() {
               <h2>{title}</h2>
               <p>{text}</p>
               <div className="copy-field">
-                <span>
-                  {origin.replace(/^https?:\/\//, "") + "/catalogo/" + type}
-                </span>
+                <span>{origin.replace(/^https?:\/\//, "") + "/catalogo/" + type}</span>
                 <button onClick={() => copy(type)}>
                   {done === type ? <FiCheck /> : <FiCopy />}
                 </button>
               </div>
-              <a
-                className="button soft full"
-                href={"/catalogo/" + type}
-                target="_blank"
-              >
+              <a className="button soft full" href={"/catalogo/" + type} target="_blank">
                 Abrir catálogo <FiArrowRight />
               </a>
             </div>
@@ -905,9 +935,16 @@ function Settings() {
     [whatsappError, setWhatsappError] = useState(""),
     [whatsappSuccess, setWhatsappSuccess] = useState("");
   useEffect(() => {
-    api.settings().then((data) => setWhatsapp(data.whatsapp)).catch((reason) =>
-      setWhatsappError(reason instanceof Error ? reason.message : "Não foi possível carregar o WhatsApp."),
-    );
+    api
+      .settings()
+      .then((data) => setWhatsapp(data.whatsapp))
+      .catch((reason) =>
+        setWhatsappError(
+          reason instanceof Error
+            ? reason.message
+            : "Não foi possível carregar o WhatsApp.",
+        ),
+      );
   }, []);
 
   async function submitWhatsapp(event: FormEvent) {
@@ -925,7 +962,9 @@ function Settings() {
       setWhatsapp(data.whatsapp);
       setWhatsappSuccess("WhatsApp atualizado. Os próximos pedidos usarão este número.");
     } catch (reason) {
-      setWhatsappError(reason instanceof Error ? reason.message : "Não foi possível salvar o WhatsApp.");
+      setWhatsappError(
+        reason instanceof Error ? reason.message : "Não foi possível salvar o WhatsApp.",
+      );
     } finally {
       setWhatsappBusy(false);
     }
@@ -952,13 +991,9 @@ function Settings() {
       setCurrent("");
       setNext("");
       setConfirm("");
-      setSuccess(
-        "Senha alterada com sucesso. Use a nova senha no próximo acesso.",
-      );
+      setSuccess("Senha alterada com sucesso. Use a nova senha no próximo acesso.");
     } catch (x) {
-      setError(
-        x instanceof Error ? x.message : "Não foi possível alterar a senha.",
-      );
+      setError(x instanceof Error ? x.message : "Não foi possível alterar a senha.");
     } finally {
       setBusy(false);
     }
@@ -1045,11 +1080,19 @@ function Settings() {
               </div>
             </label>
             <p className="field-help">
-              Inclua o código do país e o DDD. Este número receberá o resumo após o pedido ser salvo no painel.
+              Inclua o código do país e o DDD. Este número receberá o resumo após o pedido
+              ser salvo no painel.
             </p>
-            {whatsappError ? <p className="form-error" role="alert">{whatsappError}</p> : null}
+            {whatsappError ? (
+              <p className="form-error" role="alert">
+                {whatsappError}
+              </p>
+            ) : null}
             {whatsappSuccess ? (
-              <p className="form-success" role="status"><FiCheck />{whatsappSuccess}</p>
+              <p className="form-success" role="status">
+                <FiCheck />
+                {whatsappSuccess}
+              </p>
             ) : null}
             <button className="button primary" disabled={whatsappBusy}>
               {whatsappBusy ? "Salvando..." : "Salvar WhatsApp"}
@@ -1095,6 +1138,7 @@ function PublicCatalog() {
     [cart, setCart] = useState<Record<string, number>>({}),
     [cartOpen, setCartOpen] = useState(false);
   const isWholesale = type === "atacado";
+  const headerScrolled = useHeaderScrolled();
   useEffect(() => {
     const pageTitle = isWholesale
       ? "Catálogo de Atacado | Oasis Imports"
@@ -1154,13 +1198,7 @@ function PublicCatalog() {
     }
     const selected = products.filter((p) => cart[p.id]),
       lines = selected.map(
-        (p) =>
-          "• " +
-          cart[p.id] +
-          "x " +
-          p.name +
-          " — " +
-          money(cart[p.id] * price(p)),
+        (p) => "• " + cart[p.id] + "x " + p.name + " — " + money(cart[p.id] * price(p)),
       );
     const order = await api.checkout({
       type,
@@ -1195,7 +1233,9 @@ function PublicCatalog() {
   }
   return (
     <div className="public-page">
-      <header className="public-header">
+      <header
+        className={`public-header sticky-site-header${headerScrolled ? " is-scrolled" : ""}`}
+      >
         <Brand />
         <nav>
           <a href="#colecao">Coleção</a>
@@ -1205,10 +1245,7 @@ function PublicCatalog() {
           <div className="catalog-type">
             Catálogo <b>{type}</b>
           </div>
-          <button
-            className="catalog-cart-button"
-            onClick={() => setCartOpen(true)}
-          >
+          <button className="catalog-cart-button" onClick={() => setCartOpen(true)}>
             <FiShoppingBag />
             <span>Seleção</span>
             {count > 0 && <b>{count}</b>}
@@ -1233,11 +1270,17 @@ function PublicCatalog() {
               : "Escolha a fragrância que traduz sua personalidade e transforme cada chegada em uma impressão inesquecível."}
           </p>
           <div className="hero-benefits" aria-label="Vantagens do catálogo">
-            <span><FiCheck /> {isWholesale ? "A partir de 5 peças" : "Curadoria selecionada"}</span>
-            <span><FiCheck /> {isWholesale ? "Mix livre de fragrâncias" : "Escolha com personalidade"}</span>
+            <span>
+              <FiCheck /> {isWholesale ? "A partir de 5 peças" : "Curadoria selecionada"}
+            </span>
+            <span>
+              <FiCheck />{" "}
+              {isWholesale ? "Mix livre de fragrâncias" : "Escolha com personalidade"}
+            </span>
           </div>
           <a className="button light" href="#colecao">
-            {isWholesale ? "Montar pedido de atacado" : "Encontrar minha fragrância"} <FiArrowRight />
+            {isWholesale ? "Montar pedido de atacado" : "Encontrar minha fragrância"}{" "}
+            <FiArrowRight />
           </a>
         </motion.div>
         <div className="hero-bottle">
@@ -1251,7 +1294,9 @@ function PublicCatalog() {
       </section>
       <section className="collection" id="colecao">
         <motion.aside className="catalog-notice" {...fade}>
-          <div className="catalog-notice-icon"><FiCheck /></div>
+          <div className="catalog-notice-icon">
+            <FiCheck />
+          </div>
           <div>
             <strong>
               {isWholesale
@@ -1290,21 +1335,16 @@ function PublicCatalog() {
             {shown.map((p) => (
               <article className="shop-card" key={p.id}>
                 <div className="shop-image">
-                  {p.image ? (
-                    <img src={p.image} alt={p.name} />
-                  ) : (
-                    <span>O</span>
-                  )}
+                  {p.image ? <img src={p.image} alt={p.name} /> : <span>O</span>}
                   {p.featured && <em>DESTAQUE</em>}
                 </div>
                 <small>{p.brand || p.category}</small>
                 <h3>{p.name}</h3>
-                <p>
-                  {p.description ||
-                    "Uma fragrância especial da curadoria Oasis."}
-                </p>
+                <p>{p.description || "Uma fragrância especial da curadoria Oasis."}</p>
                 <div className="shop-action">
-                  <strong>{money(price(p))}</strong>
+                  <strong aria-label={`Preço ${money(price(p))}`}>
+                    {price(p) > 0 ? money(price(p)) : "Consulte o valor"}
+                  </strong>
                   <button
                     onClick={() => addToCart(p.id)}
                     aria-label={"Adicionar " + p.name}

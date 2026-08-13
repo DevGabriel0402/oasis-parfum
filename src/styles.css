@@ -717,11 +717,12 @@ td {
   justify-content: space-between;
 }
 .catalog-visual.varejo {
-  background-image: url("../public/catalogo-varejo-thumb.png") center cover no-repeat;
-  object-fit: cover;
+  background-image: url("../public/catalogo-varejo-thumb.png") center cover no-repeat !important;
+  object-fit: contain;
 }
 .catalog-visual.atacado {
-  background-image: url("../public/catalogo-atacado-thumb.png") center cover no-repeat;
+  background-image: url("../public/catalogo-atacado-thumb.png") center cover no-repeat !important;
+  object-fit: contain;
 }
 .catalog-visual > span {
   font-size: 9px;

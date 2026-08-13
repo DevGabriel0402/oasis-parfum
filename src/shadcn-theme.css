@@ -23,7 +23,7 @@
   --radius-md: calc(var(--radius) * 0.875);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) * 1.5);
-  --font-sans: ui-sans-serif, sans-serif;
+  --font-sans: "Roboto", Arial, sans-serif;
 }
 
 :root {
@@ -64,7 +64,7 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: ui-sans-serif, sans-serif;
+  font-family: "Roboto", Arial, sans-serif;
 }
 
 button,
@@ -239,6 +239,21 @@ textarea:focus {
   border-right: 1px solid #242424;
   background: #090909;
   color: #fafafa;
+}
+
+.brand img {
+  display: block;
+  width: 188px;
+  height: auto;
+}
+
+.sidebar .brand img,
+.public-page footer .brand img {
+  filter: invert(1);
+}
+
+.public-header .brand img {
+  width: 176px;
 }
 
 .sidebar nav a {

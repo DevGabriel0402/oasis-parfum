@@ -95,11 +95,7 @@ export default function App() {
 function Brand() {
   return (
     <div className="brand">
-      <span className="brand-mark">O</span>
-      <span>
-        <b>OASIS</b>
-        <small>PARFUMS</small>
-      </span>
+      <img src="/oasis-imports-logo.svg" alt="Oasis Imports" />
     </div>
   );
 }
@@ -201,7 +197,7 @@ function Shell({ done }: { done: () => void }) {
         <div className="side-bottom">
           <div className="admin-avatar">OP</div>
           <div>
-            <b>Oasis Parfums</b>
+            <b>Oasis Imports</b>
             <small>Administrador</small>
           </div>
           <button className="icon-button" onClick={logout}>
@@ -221,7 +217,7 @@ function Shell({ done }: { done: () => void }) {
             <FiMenu />
           </button>
           <div>
-            <span className="eyebrow">OASIS PARFUMS</span>
+              <span className="eyebrow">OASIS IMPORTS</span>
             <b>
               {nav.find((x) => location.pathname.startsWith(x[0]))?.[1] ||
                 "Painel"}
@@ -1070,7 +1066,7 @@ function PublicCatalog() {
           </h1>
           <p>
             {isWholesale
-              ? "Monte seu pedido com 5 peças ou mais e aproveite os valores especiais de atacado da Oasis Parfums."
+              ? "Monte seu pedido com 5 peças ou mais e aproveite os valores especiais de atacado da Oasis Imports."
               : "Escolha a fragrância que traduz sua personalidade e transforme cada chegada em uma impressão inesquecível."}
           </p>
           <div className="hero-benefits" aria-label="Vantagens do catálogo">
@@ -1086,7 +1082,7 @@ function PublicCatalog() {
           <small>
             OASIS
             <br />
-            PARFUMS
+            IMPORTS
           </small>
         </div>
       </section>
@@ -1171,7 +1167,7 @@ function PublicCatalog() {
       <footer id="sobre">
         <Brand />
         <p>Essências que contam histórias.</p>
-        <small>© {new Date().getFullYear()} Oasis Parfums</small>
+        <small>© {new Date().getFullYear()} Oasis Imports</small>
       </footer>
     </div>
   );

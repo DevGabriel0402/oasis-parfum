@@ -1,9 +1,9 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap");
 @import "tailwindcss";
 @import "tw-animate-css";
 @source "../node_modules/streamdown/dist/*.js";
 :root {
-  font-family: "DM Sans", sans-serif;
+  font-family: "Roboto", Arial, sans-serif;
   color: #20342d;
   background: #f7f7f2;
   font-synthesis: none;
@@ -48,7 +48,7 @@ p {
 }
 h1,
 h2 {
-  font-family: "Playfair Display", serif;
+  font-family: "Roboto", Arial, sans-serif;
 }
 .brand {
   display: flex;
@@ -62,7 +62,10 @@ h2 {
   border-radius: 50% 48% 46% 52%;
   display: grid;
   place-items: center;
-  font: 600 24px "Playfair Display";
+  font:
+    600 24px "Roboto",
+    Arial,
+    sans-serif;
 }
 .brand > span:last-child {
   display: flex;
@@ -70,7 +73,10 @@ h2 {
   line-height: 1;
 }
 .brand b {
-  font: 600 18px "Playfair Display";
+  font:
+    600 18px "Roboto",
+    Arial,
+    sans-serif;
   letter-spacing: 0.18em;
 }
 .brand small {
@@ -410,7 +416,10 @@ textarea:focus {
   color: var(--muted);
 }
 .stat strong {
-  font: 600 23px "Playfair Display";
+  font:
+    600 23px "Roboto",
+    Arial,
+    sans-serif;
   margin: 4px 0;
 }
 .stat small {
@@ -528,6 +537,9 @@ td {
 }
 .empty > span {
   font-size: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .empty b {
   display: block;
@@ -594,7 +606,10 @@ td {
 }
 .product-image > span,
 .shop-image > span {
-  font: 500 55px "Playfair Display";
+  font:
+    500 55px "Roboto",
+    Arial,
+    sans-serif;
   color: #597567;
 }
 .product-image em,
@@ -619,7 +634,10 @@ td {
   letter-spacing: 0.1em;
 }
 .product-info h3 {
-  font: 600 15px "Playfair Display";
+  font:
+    600 15px "Roboto",
+    Arial,
+    sans-serif;
   margin: 7px 0 15px;
 }
 .product-info div {
@@ -788,12 +806,7 @@ td {
   min-height: 570px;
   padding: 75px 10vw;
   color: white;
-  background: radial-gradient(
-    circle at 75% 40%,
-    #4a6a5c 0,
-    #24483c 28%,
-    #123329 65%
-  );
+  background: radial-gradient(circle at 75% 40%, #4a6a5c 0, #24483c 28%, #123329 65%);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -822,7 +835,10 @@ td {
   transform: rotate(3deg);
 }
 .hero-bottle span {
-  font: 500 70px "Playfair Display";
+  font:
+    500 70px "Roboto",
+    Arial,
+    sans-serif;
   border: 1px solid #f3e7c1;
   border-radius: 50%;
   width: 90px;
@@ -863,7 +879,10 @@ td {
   color: #879088;
 }
 .shop-card h3 {
-  font: 600 18px "Playfair Display";
+  font:
+    600 18px "Roboto",
+    Arial,
+    sans-serif;
   margin: 7px 0;
 }
 .shop-card p {
@@ -879,7 +898,10 @@ td {
   margin-top: 18px;
 }
 .shop-action strong {
-  font: 600 17px "Playfair Display";
+  font:
+    600 17px "Roboto",
+    Arial,
+    sans-serif;
 }
 .shop-action button {
   width: 36px;
@@ -917,7 +939,10 @@ td {
   color: #b8cbc1;
 }
 .cart-bar strong {
-  font: 600 18px "Playfair Display";
+  font:
+    600 18px "Roboto",
+    Arial,
+    sans-serif;
   margin-top: 3px;
 }
 .public-page footer {

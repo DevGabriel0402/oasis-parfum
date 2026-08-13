@@ -108,7 +108,7 @@ export default function Assistant() {
       <div className="page-head assistant-head">
         <div>
           <span className="eyebrow">GROQ · LLAMA 3.3 70B</span>
-          <h1>Assistente Oasis</h1>
+          <h1>Assistente Oasis Imports</h1>
           <p>Analise catálogo, estoque, pedidos e vendas em uma conversa.</p>
         </div>
         {messages.length > 0 && (

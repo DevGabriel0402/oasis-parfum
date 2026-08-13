@@ -38,7 +38,7 @@ export default async function handler(
   const model = process.env.GROQ_MODEL?.trim() || DEFAULT_MODEL;
   if (!apiKey) {
     return res.status(503).json({
-      error: "O Assistente Oasis ainda não possui uma chave Groq configurada.",
+      error: "O Assistente Oasis Imports ainda não possui uma chave Groq configurada.",
     });
   }
 
@@ -97,7 +97,7 @@ export default async function handler(
         {
           role: "system",
           content:
-            "Você é o Assistente Oasis, consultor da Oasis Parfums. " +
+            "Você é o Assistente Oasis Imports, consultor da Oasis Imports. " +
             "Responda sempre em português do Brasil, de forma objetiva e elegante. " +
             "Use somente os dados comerciais fornecidos para responder sobre catálogo, preços, estoque, pedidos e vendas. " +
             "Nunca invente dados, não revele credenciais e não afirme que alterou a planilha. " +

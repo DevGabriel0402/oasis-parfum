@@ -149,7 +149,7 @@
 }
 
 .cart-line-image span {
-  font: 500 30px "Playfair Display";
+  font: 500 30px "Roboto", Arial, sans-serif;
 }
 
 .cart-line-info small {
@@ -160,7 +160,7 @@
 }
 
 .cart-line-info h3 {
-  font: 600 15px "Playfair Display";
+  font: 600 15px "Roboto", Arial, sans-serif;
   margin: 5px 0;
 }
 
@@ -169,7 +169,7 @@
 }
 
 .cart-line > b {
-  font: 600 13px "Playfair Display";
+  font: 600 13px "Roboto", Arial, sans-serif;
 }
 
 .quantity-control {
@@ -215,7 +215,7 @@
 }
 
 .cart-total strong {
-  font: 600 26px "Playfair Display";
+  font: 600 26px "Roboto", Arial, sans-serif;
 }
 
 .cart-checkout {
@@ -242,7 +242,7 @@
 }
 
 .cart-empty h3 {
-  font: 600 20px "Playfair Display";
+  font: 600 20px "Roboto", Arial, sans-serif;
   color: #222;
   margin: 15px 0 7px;
 }

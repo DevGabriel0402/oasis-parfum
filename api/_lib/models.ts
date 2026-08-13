@@ -68,7 +68,14 @@ export function catalogPrice(
         : product.wholesalePrice || product.retailPrice,
     );
   }
-  return currency(product.retailPrice * 1.3);
+  const calculated = product.costPrice * 1.35;
+  return currency(
+    product.retailPrice > 0
+      ? product.retailPrice
+      : calculated > 0
+        ? calculated
+        : product.wholesalePrice || 0,
+  );
 }
 
 export async function products() {
@@ -89,6 +96,50 @@ export async function products() {
       const id = String(
         pick(data, ["ID", "Código", "Codigo"], `legacy-${rowNumber}`),
       );
+      const costPrice = number(
+        pick(data, [
+          "PreÃ§o de Custo (R$)",
+          "Preço de Custo (R$)",
+          "PreÃ§o de Custo",
+          "Preço de Custo",
+          "Custo",
+          "Valor de Custo",
+        ]),
+      );
+      const parsedRetail = number(
+        pick(data, [
+          "Preço Varejo",
+          "Preço de Venda (+35%)",
+          "Preço de Venda (R$)",
+          "Preco de Venda (R$)",
+          "Preço de Venda",
+          "Preco de Venda",
+          "Preço Venda",
+          "Preco Venda",
+          "Valor de Venda",
+          "Valor Venda",
+          "Venda",
+          "Preco Varejo",
+          "Preço",
+          "Valor",
+          "Preço Unitário",
+        ]),
+      );
+      const parsedWholesale = number(
+        pick(data, ["Preço Atacado", "Preco Atacado", "Atacado"]),
+      );
+      const retailPrice =
+        parsedRetail > 0
+          ? parsedRetail
+          : costPrice > 0
+            ? currency(costPrice * 1.35)
+            : parsedWholesale;
+      const wholesalePrice =
+        parsedWholesale > 0
+          ? parsedWholesale
+          : costPrice > 0
+            ? currency(costPrice * 1.15)
+            : parsedRetail;
       return {
         id,
         name,
@@ -105,38 +156,9 @@ export async function products() {
             "Link da Imagem",
           ]),
         ),
-        retailPrice: number(
-          pick(data, [
-            "Preço Varejo",
-            "Preço de Venda (+35%)",
-            "Preço de Venda (R$)",
-            "Preco de Venda (R$)",
-            "Preço de Venda",
-            "Preco de Venda",
-            "Preço Venda",
-            "Preco Venda",
-            "Valor de Venda",
-            "Valor Venda",
-            "Venda",
-            "Preco Varejo",
-            "Preço",
-            "Valor",
-            "Preço Unitário",
-          ]),
-        ),
-        costPrice: number(
-          pick(data, [
-            "PreÃ§o de Custo (R$)",
-            "Preço de Custo (R$)",
-            "PreÃ§o de Custo",
-            "Preço de Custo",
-            "Custo",
-            "Valor de Custo",
-          ]),
-        ),
-        wholesalePrice: number(
-          pick(data, ["Preço Atacado", "Preco Atacado", "Atacado"]),
-        ),
+        retailPrice,
+        costPrice,
+        wholesalePrice,
         stock: number(pick(data, ["Estoque", "Quantidade", "Qtd"])),
         category: String(
           pick(data, ["Categoria", "Família Olfativa"], "Perfumes"),

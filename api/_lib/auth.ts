@@ -3,7 +3,7 @@ import { SignJWT, jwtVerify } from 'jose'
 
 const COOKIE = 'oasis_session'
 function secret() {
-  const value = process.env.SESSION_SECRET
+  const value = process.env.SESSION_SECRET?.trim()
   if (!value || value.length < 24) throw new Error('SESSION_SECRET não configurado com segurança.')
   return new TextEncoder().encode(value)
 }

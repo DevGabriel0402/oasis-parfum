@@ -6,15 +6,15 @@ export const SPREADSHEET_ID = process.env.GOOGLE_SPREADSHEET_ID || '1zSV7VfxVpT9
 const clean = (value: unknown) => String(value ?? '').trim()
 export const normalize = (value: unknown) => clean(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '')
 async function client() {
-  const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL
-  const key = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n')
+  const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL?.trim()
+  const key = process.env.GOOGLE_PRIVATE_KEY?.trim().replace(/\\n/g, '\n')
   let auth
   if (email && key) {
     auth = new google.auth.JWT({ email, key, scopes: ['https://www.googleapis.com/auth/spreadsheets'] })
   } else {
-    const projectNumber = process.env.GCP_PROJECT_NUMBER
-    const pool = process.env.GCP_WORKLOAD_IDENTITY_POOL_ID
-    const provider = process.env.GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID
+    const projectNumber = process.env.GCP_PROJECT_NUMBER?.trim()
+    const pool = process.env.GCP_WORKLOAD_IDENTITY_POOL_ID?.trim()
+    const provider = process.env.GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID?.trim()
     if (!email || !projectNumber || !pool || !provider) throw new Error('Federação Google Cloud/Vercel não configurada no servidor.')
     auth = ExternalAccountClient.fromJSON({
       type: 'external_account',

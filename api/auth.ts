@@ -12,7 +12,7 @@ export default async function handler(req:VercelRequest,res:VercelResponse){
     if(action==='login'){
       if(!method(req,res,['POST']))return; const password=String(req.body?.password||''); if(!password)return res.status(400).json({error:'Informe a senha.'})
       let hash=await getConfig('admin_password_hash')
-      if(!hash){const initial=process.env.ADMIN_INITIAL_PASSWORD;if(!initial)throw new Error('Defina ADMIN_INITIAL_PASSWORD para realizar o primeiro acesso.');if(password!==initial)return res.status(401).json({error:'Senha incorreta.'});hash=await bcrypt.hash(password,12);await setConfig('admin_password_hash',hash)}
+      if(!hash){const initial=process.env.ADMIN_INITIAL_PASSWORD?.trim();if(!initial)throw new Error('Defina ADMIN_INITIAL_PASSWORD para realizar o primeiro acesso.');if(password!==initial)return res.status(401).json({error:'Senha incorreta.'});hash=await bcrypt.hash(password,12);await setConfig('admin_password_hash',hash)}
       else if(!(await bcrypt.compare(password,hash)))return res.status(401).json({error:'Senha incorreta.'})
       await createSession(res);return res.json({ok:true})
     }

@@ -1,0 +1,35 @@
+{
+  "name": "oasis-parfums",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --configLoader runner",
+    "dev:ui": "vite --configLoader runner",
+    "build": "tsc -b && vite build --configLoader runner",
+    "preview": "vite preview",
+    "typecheck": "tsc -b --pretty false"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "googleapis": "^160.0.0",
+    "googleapis-common": "^8.0.3",
+    "jose": "^6.1.0",
+    "motion": "^12.23.24",
+    "@vercel/oidc": "^3.0.5",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-icons": "^5.5.0",
+    "react-router-dom": "^7.9.6",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@vercel/node": "^5.5.10",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@vitejs/plugin-react": "^5.1.1",
+    "typescript": "~5.9.3",
+    "vercel": "^48.10.2",
+    "vite": "^7.2.4"
+  }
+}

@@ -23,7 +23,7 @@
   --radius-md: calc(var(--radius) * 0.875);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) * 1.5);
-  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: ui-sans-serif, sans-serif;
 }
 
 :root {
@@ -64,7 +64,7 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  font-family: ui-sans-serif, sans-serif;
 }
 
 button,
@@ -398,7 +398,9 @@ tbody tr:hover {
 }
 
 .product-card {
-  transition: border-color 180ms ease, box-shadow 180ms ease,
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
     transform 180ms ease;
 }
 

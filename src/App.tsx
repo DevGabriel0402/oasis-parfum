@@ -31,11 +31,7 @@ import {
 } from "react-icons/fi";
 import { api } from "./api";
 import type { Order, Product } from "./types";
-import "./settings.css";
 import CatalogCart from "./CatalogCart";
-import "./catalog-theme.css";
-import "./catalog-header.css";
-import "./shadcn-theme.css";
 
 const money = (value: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(

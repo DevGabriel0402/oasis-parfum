@@ -12,27 +12,34 @@ import {
 import {
   FiArrowRight,
   FiBox,
+  FiCalendar,
   FiCheck,
   FiChevronRight,
   FiClipboard,
   FiCopy,
+  FiDollarSign,
   FiGrid,
   FiHome,
+  FiHash,
   FiLogOut,
   FiMenu,
   FiMessageCircle,
   FiPackage,
+  FiPhone,
   FiPlus,
+  FiRefreshCw,
   FiSearch,
   FiSettings,
   FiShoppingBag,
   FiTrendingUp,
+  FiUser,
   FiUsers,
   FiX,
 } from "react-icons/fi";
 import { api } from "./api";
 import type { Order, Product } from "./types";
 import CatalogCart from "./CatalogCart";
+import type { CheckoutCustomer } from "./CheckoutDialog";
 
 const Assistant = lazy(() => import("./Assistant"));
 
@@ -95,7 +102,7 @@ export default function App() {
 function Brand() {
   return (
     <div className="brand">
-      <img src="/oasis-imports-logo.svg" alt="Oasis Imports" />
+      <img src="/logo-oasis.png" alt="Oasis Imports" />
     </div>
   );
 }
@@ -707,60 +714,75 @@ function ProductModal({
 
 function Orders() {
   const [orders, setOrders] = useState<Order[]>([]),
-    [error, setError] = useState("");
-  useEffect(() => {
+    [error, setError] = useState(""),
+    [loading, setLoading] = useState(true);
+  function loadOrders() {
+    setLoading(true);
+    setError("");
     api
       .orders()
-      .then((r) => setOrders(r.orders))
-      .catch((e) => setError(e.message));
+      .then((response) => setOrders(response.orders))
+      .catch((reason) => setError(reason.message))
+      .finally(() => setLoading(false));
+  }
+  useEffect(() => {
+    loadOrders();
   }, []);
   return (
     <>
       <PageHead
         eyebrow="ACOMPANHAMENTO"
         title="Pedidos"
-        description="Histórico sincronizado com a aba Pedidos da planilha."
+        description="Pedidos completos sincronizados com a planilha e organizados para acompanhamento."
+        action={
+          <button className="button soft" onClick={loadOrders} disabled={loading}>
+            <FiRefreshCw className={loading ? "spin" : ""} />
+            {loading ? "Atualizando..." : "Atualizar"}
+          </button>
+        }
       />
       {error && <Notice message={error} />}
       <section className="panel">
         {orders.length ? (
           <div className="table-wrap">
-            <table>
+            <table className="orders-table">
               <thead>
                 <tr>
-                  <th>Pedido</th>
-                  <th>Cliente</th>
-                  <th>Tipo</th>
-                  <th>Itens</th>
-                  <th>Data</th>
-                  <th>Total</th>
-                  <th>Status</th>
+                  <th><span className="order-column-head"><FiHash />Pedido</span></th>
+                  <th><span className="order-column-head"><FiUser />Cliente</span></th>
+                  <th><span className="order-column-head"><FiPhone />Contato</span></th>
+                  <th><span className="order-column-head"><FiShoppingBag />Tipo</span></th>
+                  <th><span className="order-column-head"><FiPackage />Produtos</span></th>
+                  <th><span className="order-column-head"><FiMessageCircle />Observações</span></th>
+                  <th><span className="order-column-head"><FiCalendar />Data</span></th>
+                  <th><span className="order-column-head"><FiDollarSign />Total</span></th>
+                  <th><span className="order-column-head"><FiCheck />Status</span></th>
                 </tr>
               </thead>
               <tbody>
                 {[...orders].reverse().map((o) => (
                   <tr key={o.id}>
+                    <td><b className="order-id">{o.id}</b></td>
+                    <td><span className="order-customer">{o.customer || "—"}</span></td>
                     <td>
-                      <b>{o.id}</b>
+                      {o.phone ? <a className="order-contact" href={"tel:" + o.phone}>{o.phone}</a> : "—"}
                     </td>
-                    <td>
-                      {o.customer || "—"}
-                      <small className="cell-sub">{o.phone}</small>
+                    <td><span className="order-type">{o.type || "varejo"}</span></td>
+                    <td className="order-products">
+                      <span>{o.items || "—"}</span>
+                      <small>{o.quantity || 0} {o.quantity === 1 ? "peça" : "peças"}</small>
                     </td>
-                    <td>{o.type}</td>
-                    <td>{o.quantity || "—"}</td>
+                    <td className="order-notes">{o.notes || "—"}</td>
                     <td>{date(o.date)}</td>
-                    <td>
-                      <b>{money(o.total)}</b>
-                    </td>
-                    <td>
-                      <Badge>{o.status}</Badge>
-                    </td>
+                    <td><b>{money(o.total)}</b></td>
+                    <td><span className="order-status"><Badge>{o.status}</Badge></span></td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+        ) : loading ? (
+          <div className="loading-row"><span className="loader" />Carregando pedidos...</div>
         ) : (
           <Empty
             icon={<FiShoppingBag />}
@@ -833,7 +855,37 @@ function Settings() {
     [confirm, setConfirm] = useState(""),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
-    [success, setSuccess] = useState("");
+    [success, setSuccess] = useState(""),
+    [whatsapp, setWhatsapp] = useState(""),
+    [whatsappBusy, setWhatsappBusy] = useState(false),
+    [whatsappError, setWhatsappError] = useState(""),
+    [whatsappSuccess, setWhatsappSuccess] = useState("");
+  useEffect(() => {
+    api.settings().then((data) => setWhatsapp(data.whatsapp)).catch((reason) =>
+      setWhatsappError(reason instanceof Error ? reason.message : "Não foi possível carregar o WhatsApp."),
+    );
+  }, []);
+
+  async function submitWhatsapp(event: FormEvent) {
+    event.preventDefault();
+    setWhatsappError("");
+    setWhatsappSuccess("");
+    const normalized = whatsapp.replace(/\D/g, "");
+    if (normalized.length < 10 || normalized.length > 15) {
+      setWhatsappError("Informe o número com código do país e DDD. Ex.: 5511999999999.");
+      return;
+    }
+    setWhatsappBusy(true);
+    try {
+      const data = await api.saveWhatsapp(normalized);
+      setWhatsapp(data.whatsapp);
+      setWhatsappSuccess("WhatsApp atualizado. Os próximos pedidos usarão este número.");
+    } catch (reason) {
+      setWhatsappError(reason instanceof Error ? reason.message : "Não foi possível salvar o WhatsApp.");
+    } finally {
+      setWhatsappBusy(false);
+    }
+  }
   async function submit(event: FormEvent) {
     event.preventDefault();
     setError("");
@@ -931,6 +983,37 @@ function Settings() {
           </form>
         </section>
         <section className="panel">
+          <PanelTitle title="WhatsApp dos pedidos" />
+          <form className="password-form" onSubmit={submitWhatsapp}>
+            <label>
+              Número de destino
+              <div className="input-with-icon">
+                <FiMessageCircle />
+                <input
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  required
+                  value={whatsapp}
+                  onChange={(event) => setWhatsapp(event.target.value)}
+                  placeholder="Ex.: 5511999999999"
+                />
+              </div>
+            </label>
+            <p className="field-help">
+              Inclua o código do país e o DDD. Este número receberá o resumo após o pedido ser salvo no painel.
+            </p>
+            {whatsappError ? <p className="form-error" role="alert">{whatsappError}</p> : null}
+            {whatsappSuccess ? (
+              <p className="form-success" role="status"><FiCheck />{whatsappSuccess}</p>
+            ) : null}
+            <button className="button primary" disabled={whatsappBusy}>
+              {whatsappBusy ? "Salvando..." : "Salvar WhatsApp"}
+              <FiArrowRight />
+            </button>
+          </form>
+        </section>
+        <section className="panel">
           <PanelTitle title="Segurança" />
           <div className="setting-row">
             <FiCheck />
@@ -997,7 +1080,7 @@ function PublicCatalog() {
     setCart((current) => ({ ...current, [id]: (current[id] || 0) + 1 }));
     setCartOpen(true);
   }
-  async function checkout() {
+  async function checkout(customer: CheckoutCustomer) {
     if (isWholesale && count < 5) {
       setCartOpen(true);
       return;
@@ -1014,21 +1097,34 @@ function PublicCatalog() {
       );
     const order = await api.checkout({
       type,
+      customer: customer.customer,
+      phone: customer.contact,
+      notes: customer.notes,
       items: selected.map((p) => ({ id: p.id, quantity: cart[p.id] })),
     });
     const message =
-      "Olá! Gostaria de fazer este pedido no catálogo de " +
+      "Olá! Um novo pedido foi registrado no catálogo de " +
       type +
-      ":\n\n" +
+      ".\n\nCliente: " +
+      customer.customer +
+      "\nContato: " +
+      customer.contact +
+      "\n\n" +
       lines.join("\n") +
       "\n\nPedido: " +
       order.id +
       "\nTotal: " +
-      money(order.total);
-    window.open(
-      "https://wa.me/" + whatsapp + "?text=" + encodeURIComponent(message),
-      "_blank",
-    );
+      money(order.total) +
+      (customer.notes ? "\nObservações: " + customer.notes : "");
+    setCart({});
+    setCartOpen(false);
+    const whatsappNumber = whatsapp.replace(/\D/g, "");
+    if (whatsappNumber)
+      window.open(
+        "https://wa.me/" + whatsappNumber + "?text=" + encodeURIComponent(message),
+        "_blank",
+        "noopener,noreferrer",
+      );
   }
   return (
     <div className="public-page">
@@ -1163,6 +1259,7 @@ function PublicCatalog() {
         onCheckout={checkout}
         whatsapp={whatsapp}
         minimumQuantity={isWholesale ? 5 : 1}
+        orderType={type}
       />
       <footer id="sobre">
         <Brand />

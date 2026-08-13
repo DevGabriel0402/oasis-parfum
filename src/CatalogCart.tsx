@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "motion/react";
 import { FiArrowRight, FiMinus, FiPlus, FiShoppingBag, FiTrash2 } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import type { Product } from "./types";
+import CheckoutDialog, { type CheckoutCustomer } from "./CheckoutDialog";
 
 type CatalogProduct = Product & { price?: number };
 
@@ -18,9 +20,10 @@ type Props = {
   cart: Record<string, number>;
   onClose: () => void;
   onQuantity: (id: string, quantity: number) => void;
-  onCheckout: () => void;
+  onCheckout: (customer: CheckoutCustomer) => Promise<void>;
   whatsapp: string;
   minimumQuantity?: number;
+  orderType: string;
 };
 
 const money = (value: number) =>
@@ -40,7 +43,9 @@ export default function CatalogCart({
   onCheckout,
   whatsapp,
   minimumQuantity = 1,
+  orderType,
 }: Props) {
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
   const items = products.filter((product) => cart[product.id] > 0);
   const count = items.reduce((sum, product) => sum + cart[product.id], 0);
   const total = items.reduce(
@@ -51,6 +56,7 @@ export default function CatalogCart({
   const minimumReached = remaining === 0;
 
   return (
+    <>
     <Sheet open={open} onOpenChange={(next) => !next && onClose()}>
       <SheetContent
         className="cart-drawer w-full gap-0 p-0 sm:max-w-[480px]"
@@ -139,16 +145,24 @@ export default function CatalogCart({
           </div>
           <Button
             className="cart-checkout h-11 w-full"
-            onClick={onCheckout}
-            disabled={!items.length || !whatsapp || !minimumReached}
+            onClick={() => setCheckoutOpen(true)}
+            disabled={!items.length || !minimumReached}
           >
-            Finalizar pelo WhatsApp <FiArrowRight />
+            Finalizar pedido <FiArrowRight />
           </Button>
           {!whatsapp && items.length > 0 && (
-            <small>Configure o WhatsApp para habilitar a finalização.</small>
+            <small>O pedido será salvo no painel. Configure o WhatsApp para também receber a mensagem.</small>
           )}
         </footer>
       </SheetContent>
     </Sheet>
+    <CheckoutDialog
+      open={checkoutOpen}
+      onOpenChange={setCheckoutOpen}
+      onSubmit={onCheckout}
+      orderType={orderType}
+      whatsappConfigured={Boolean(whatsapp)}
+    />
+    </>
   );
 }

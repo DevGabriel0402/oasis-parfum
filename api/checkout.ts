@@ -20,7 +20,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const body = req.body || {},
       type = body.type === "atacado" ? "atacado" : "varejo",
-      requested = Array.isArray(body.items) ? body.items : [];
+      requested = Array.isArray(body.items) ? body.items : [],
+      customer = String(body.customer || "").trim().slice(0, 120),
+      phone = String(body.phone || "").trim().slice(0, 80),
+      notes = String(body.notes || "").trim().slice(0, 500);
+    if (customer.length < 2)
+      return res.status(400).json({ error: "Informe o nome do cliente." });
+    if (phone.length < 8)
+      return res.status(400).json({ error: "Informe um contato válido." });
     if (!requested.length)
       return res.status(400).json({ error: "O pedido está vazio." });
     const catalog = await products(),
@@ -51,14 +58,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const data = {
       ID: id,
       Data: new Date().toISOString(),
-      Cliente: String(body.customer || "Cliente do catálogo"),
-      Telefone: String(body.phone || ""),
+      Cliente: customer,
+      Telefone: phone,
       Tipo: type,
       Itens: items.map((item) => item.quantity + "x " + item.name).join(" | "),
       Quantidade: quantity,
       Total: total,
       Status: "Novo",
-      Observações: "Pedido iniciado no catálogo público",
+      Observações: notes || "Pedido realizado pelo catálogo público",
     };
     await appendObject(
       "Pedidos",

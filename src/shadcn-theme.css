@@ -244,7 +244,9 @@ textarea:focus {
 .brand img {
   display: block;
   width: 188px;
-  height: auto;
+  height: 54px;
+  object-fit: cover;
+  object-position: center;
 }
 
 .sidebar .brand img,

@@ -5,6 +5,10 @@
 }
 
 @media (max-width: 540px) {
+  .public-header .brand img {
+    width: 142px;
+  }
+
   .catalog-type {
     display: none;
   }

@@ -15,12 +15,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const { raw, rowNumber, order, costPrice, ...item } = product;
         return { ...item, price: catalogPrice(product, type) };
       });
-    res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=300");
+    const configuredWhatsapp = await getConfig("whatsapp_number");
+    res.setHeader("Cache-Control", "no-store");
     return res.json({
       type,
       products: items,
-      whatsapp:
-        process.env.WHATSAPP_NUMBER || (await getConfig("whatsapp_number")),
+      whatsapp: configuredWhatsapp || process.env.WHATSAPP_NUMBER || "",
     });
   } catch (error) {
     return fail(res, error);

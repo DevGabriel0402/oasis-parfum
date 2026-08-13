@@ -22,6 +22,12 @@ export const api = {
       method: "PUT",
       body: JSON.stringify({ current, next }),
     }),
+  settings: () => request<{ whatsapp: string }>("/api/settings"),
+  saveWhatsapp: (whatsapp: string) =>
+    request<{ ok: boolean; whatsapp: string }>("/api/settings", {
+      method: "PUT",
+      body: JSON.stringify({ whatsapp }),
+    }),
   products: () => request<{ products: import("./types").Product[] }>("/api/products"),
   saveProduct: (product: Record<string, unknown>, editing: boolean) =>
     request("/api/products", {

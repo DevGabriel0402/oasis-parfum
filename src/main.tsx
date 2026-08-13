@@ -8,6 +8,7 @@ import "./catalog-theme.css";
 import "./catalog-header.css";
 import "./shadcn-theme.css";
 import "./catalog-copy.css";
+import "./checkout-orders.css";
 import App from "./App";
 
 createRoot(document.getElementById("root")!).render(

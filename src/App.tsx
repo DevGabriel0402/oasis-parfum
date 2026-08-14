@@ -463,6 +463,7 @@ const blank = {
   brand: "",
   description: "",
   image: "",
+  costPrice: 0,
   retailPrice: 0,
   wholesalePrice: 0,
   stock: 0,
@@ -537,7 +538,7 @@ function Products() {
                   <small>{p.brand || p.category}</small>
                   <h3>{p.name || "Produto sem nome"}</h3>
                   <div>
-                    <strong>{money(p.retailPrice)}</strong>
+                    <strong>{money(p.costPrice || 0)}</strong>
                     <span>{p.stock} un.</span>
                   </div>
                 </div>
@@ -633,6 +634,15 @@ function ProductModal({
           <label>
             Categoria
             <input value={form.category} onChange={field("category")} />
+          </label>
+          <label>
+            Preço de custo
+            <input
+              type="number"
+              step=".01"
+              value={form.costPrice}
+              onChange={field("costPrice")}
+            />
           </label>
           <label>
             Preço varejo

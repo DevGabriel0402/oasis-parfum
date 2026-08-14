@@ -7,8 +7,9 @@ export const CATALOG_HEADERS = [
   "Marca",
   "Descrição",
   "Imagem",
-  "Preço Varejo",
-  "Preço Atacado",
+  "Preço de Custo (R$)",
+  "Preço de Venda (varejo)",
+  "Preço de Venda (atacado)",
   "Estoque",
   "Categoria",
   "Ativo",
@@ -61,21 +62,13 @@ export function catalogPrice(
   type: "varejo" | "atacado",
 ) {
   if (type === "atacado") {
-    const calculated = product.costPrice * 1.15;
-    return currency(
-      calculated > 0
-        ? calculated
-        : product.wholesalePrice || product.retailPrice,
-    );
+    if (product.wholesalePrice > 0) return currency(product.wholesalePrice);
+    const calculated = product.costPrice > 0 ? product.costPrice * 1.15 : 0;
+    return currency(calculated > 0 ? calculated : product.retailPrice);
   }
-  const calculated = product.costPrice * 1.35;
-  return currency(
-    product.retailPrice > 0
-      ? product.retailPrice
-      : calculated > 0
-        ? calculated
-        : product.wholesalePrice || 0,
-  );
+  if (product.retailPrice > 0) return currency(product.retailPrice);
+  const calculated = product.costPrice > 0 ? product.costPrice * 1.35 : 0;
+  return currency(calculated > 0 ? calculated : product.wholesalePrice || 0);
 }
 
 export async function products() {
@@ -108,6 +101,7 @@ export async function products() {
       );
       const parsedRetail = number(
         pick(data, [
+          "Preço de Venda (varejo)",
           "Preço Varejo",
           "Preço de Venda (+35%)",
           "Preço de Venda (R$)",
@@ -126,7 +120,7 @@ export async function products() {
         ]),
       );
       const parsedWholesale = number(
-        pick(data, ["Preço Atacado", "Preco Atacado", "Atacado"]),
+        pick(data, ["Preço de Venda (atacado)", "Preço Atacado", "Preco Atacado", "Atacado"]),
       );
       const retailPrice =
         parsedRetail > 0

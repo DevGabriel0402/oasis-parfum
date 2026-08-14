@@ -22,11 +22,11 @@ export const api = {
       method: "PUT",
       body: JSON.stringify({ current, next }),
     }),
-  settings: () => request<{ whatsapp: string }>("/api/settings"),
-  saveWhatsapp: (whatsapp: string) =>
-    request<{ ok: boolean; whatsapp: string }>("/api/settings", {
+  settings: () => request<{ whatsapp: string, retailPercentage: number, wholesalePercentage: number }>("/api/settings"),
+  saveSettings: (data: { whatsapp?: string, retailPercentage?: number, wholesalePercentage?: number }) =>
+    request<{ ok: boolean; whatsapp: string, retailPercentage: number, wholesalePercentage: number }>("/api/settings", {
       method: "PUT",
-      body: JSON.stringify({ whatsapp }),
+      body: JSON.stringify(data),
     }),
   products: () => request<{ products: import("./types").Product[] }>("/api/products"),
   saveProduct: (product: Record<string, unknown>, editing: boolean) =>

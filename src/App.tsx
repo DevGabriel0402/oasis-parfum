@@ -932,11 +932,20 @@ function Settings() {
     [whatsapp, setWhatsapp] = useState(""),
     [whatsappBusy, setWhatsappBusy] = useState(false),
     [whatsappError, setWhatsappError] = useState(""),
-    [whatsappSuccess, setWhatsappSuccess] = useState("");
+    [whatsappSuccess, setWhatsappSuccess] = useState(""),
+    [retailPercentage, setRetailPercentage] = useState<number | "">(""),
+    [wholesalePercentage, setWholesalePercentage] = useState<number | "">(""),
+    [pricingBusy, setPricingBusy] = useState(false),
+    [pricingError, setPricingError] = useState(""),
+    [pricingSuccess, setPricingSuccess] = useState("");
   useEffect(() => {
     api
       .settings()
-      .then((data) => setWhatsapp(data.whatsapp))
+      .then((data) => {
+        setWhatsapp(data.whatsapp);
+        setRetailPercentage(data.retailPercentage || 0);
+        setWholesalePercentage(data.wholesalePercentage || 0);
+      })
       .catch((reason) =>
         setWhatsappError(
           reason instanceof Error
@@ -957,7 +966,7 @@ function Settings() {
     }
     setWhatsappBusy(true);
     try {
-      const data = await api.saveWhatsapp(normalized);
+      const data = await api.saveSettings({ whatsapp: normalized });
       setWhatsapp(data.whatsapp);
       setWhatsappSuccess("WhatsApp atualizado. Os próximos pedidos usarão este número.");
     } catch (reason) {
@@ -968,6 +977,29 @@ function Settings() {
       setWhatsappBusy(false);
     }
   }
+
+  async function submitPricing(event: FormEvent) {
+    event.preventDefault();
+    setPricingError("");
+    setPricingSuccess("");
+    setPricingBusy(true);
+    try {
+      const data = await api.saveSettings({ 
+        retailPercentage: Number(retailPercentage), 
+        wholesalePercentage: Number(wholesalePercentage) 
+      });
+      setRetailPercentage(data.retailPercentage);
+      setWholesalePercentage(data.wholesalePercentage);
+      setPricingSuccess("Porcentagens atualizadas.");
+    } catch (reason) {
+      setPricingError(
+        reason instanceof Error ? reason.message : "Não foi possível salvar as porcentagens.",
+      );
+    } finally {
+      setPricingBusy(false);
+    }
+  }
+
   async function submit(event: FormEvent) {
     event.preventDefault();
     setError("");
@@ -1095,6 +1127,51 @@ function Settings() {
             ) : null}
             <button className="button primary" disabled={whatsappBusy}>
               {whatsappBusy ? "Salvando..." : "Salvar WhatsApp"}
+              <FiArrowRight />
+            </button>
+          </form>
+        </section>
+        <section className="panel">
+          <PanelTitle title="Precificação (%)" />
+          <form className="password-form" onSubmit={submitPricing}>
+            <label>
+              Porcentagem do Varejo
+              <input
+                type="number"
+                step="0.01"
+                required
+                value={retailPercentage}
+                onChange={(event) => setRetailPercentage(event.target.value === "" ? "" : Number(event.target.value))}
+                placeholder="Ex.: 30"
+              />
+            </label>
+            <label>
+              Porcentagem do Atacado
+              <input
+                type="number"
+                step="0.01"
+                required
+                value={wholesalePercentage}
+                onChange={(event) => setWholesalePercentage(event.target.value === "" ? "" : Number(event.target.value))}
+                placeholder="Ex.: 15"
+              />
+            </label>
+            <p className="field-help">
+              Defina a porcentagem a ser aplicada para o valor de varejo e atacado.
+            </p>
+            {pricingError ? (
+              <p className="form-error" role="alert">
+                {pricingError}
+              </p>
+            ) : null}
+            {pricingSuccess ? (
+              <p className="form-success" role="status">
+                <FiCheck />
+                {pricingSuccess}
+              </p>
+            ) : null}
+            <button className="button primary" disabled={pricingBusy}>
+              {pricingBusy ? "Salvando..." : "Salvar Porcentagens"}
               <FiArrowRight />
             </button>
           </form>

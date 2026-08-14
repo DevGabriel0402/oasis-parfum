@@ -1,5 +1,5 @@
 import { FormEvent, useState } from "react";
-import { FiArrowUp, FiMessageCircle, FiTrash2 } from "react-icons/fi";
+import { FiArrowUp, FiMessageCircle, FiTrash2, FiX } from "react-icons/fi";
 import {
   Conversation,
   ConversationContent,
@@ -30,6 +30,7 @@ const suggestions = [
 export default function Assistant() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
+  const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -104,82 +105,91 @@ export default function Assistant() {
   }
 
   return (
-    <div className="assistant-page">
-      <div className="page-head assistant-head">
-        <div>
-          <span className="eyebrow">GROQ · LLAMA 3.3 70B</span>
-          <h1>Assistente Oasis Imports</h1>
-          <p>Analise catálogo, estoque, pedidos e vendas em uma conversa.</p>
-        </div>
-        {messages.length > 0 && (
-          <Button variant="outline" onClick={() => setMessages([])}>
-            <FiTrash2 /> Limpar conversa
-          </Button>
-        )}
-      </div>
+    <>
+      <button
+        className="floating-assistant-button"
+        onClick={() => setOpen(!open)}
+        aria-label="Toggle Assistente"
+      >
+        {open ? <FiX /> : <FiMessageCircle />}
+      </button>
 
-      <section className="assistant-panel">
-        <Conversation className="assistant-conversation">
-          <ConversationContent className="assistant-messages">
-            {!messages.length ? (
-              <ConversationEmptyState>
-                <div className="assistant-empty">
-                  <FiMessageCircle className="assistant-empty-icon" />
-                  <h2>Como posso ajudar hoje?</h2>
-                  <p>Consulte os dados atuais da planilha, sem informações pessoais de clientes.</p>
-                  <div className="assistant-suggestions">
-                    {suggestions.map((suggestion) => (
-                      <Button
-                        key={suggestion}
-                        variant="outline"
-                        onClick={() => void send(suggestion)}
-                      >
-                        {suggestion}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              </ConversationEmptyState>
-            ) : (
-              messages.map((message) => (
-                <Message from={message.role} key={message.id}>
-                  <MessageContent>
-                    {message.content ? (
-                      <MessageResponse>{message.content}</MessageResponse>
-                    ) : (
-                      <span className="assistant-thinking">Analisando…</span>
-                    )}
-                  </MessageContent>
-                </Message>
-              ))
+      {open && (
+        <div className="floating-assistant-window">
+          <div className="floating-assistant-head">
+            <div>
+              <strong>Assistente Oasis</strong>
+              <small>LLAMA 3.3 70B</small>
+            </div>
+            {messages.length > 0 && (
+              <Button variant="ghost" size="icon-sm" onClick={() => setMessages([])} title="Limpar">
+                <FiTrash2 />
+              </Button>
             )}
-          </ConversationContent>
-          <ConversationScrollButton />
-        </Conversation>
+          </div>
 
-        <div className="assistant-composer">
-          {error && <p className="form-error" role="alert">{error}</p>}
-          <form onSubmit={submit}>
-            <Textarea
-              value={input}
-              onChange={(event) => setInput(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" && !event.shiftKey) {
-                  event.preventDefault();
-                  if (input.trim()) void send(input);
-                }
-              }}
-              placeholder="Escreva sua mensagem…"
-              rows={2}
-              disabled={busy}
-            />
-            <Button type="submit" size="icon-lg" disabled={busy || !input.trim()} aria-label="Enviar mensagem">
-              <FiArrowUp />
-            </Button>
-          </form>
-          <small>O assistente pode cometer erros. Confirme informações importantes.</small>
+          <section className="assistant-panel">
+            <Conversation className="assistant-conversation">
+              <ConversationContent className="assistant-messages">
+                {!messages.length ? (
+                  <ConversationEmptyState>
+                    <div className="assistant-empty">
+                      <FiMessageCircle className="assistant-empty-icon" />
+                      <h2>Como posso ajudar?</h2>
+                      <div className="assistant-suggestions">
+                        {suggestions.map((suggestion) => (
+                          <Button
+                            key={suggestion}
+                            variant="outline"
+                            onClick={() => void send(suggestion)}
+                          >
+                            {suggestion}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  </ConversationEmptyState>
+                ) : (
+                  messages.map((message) => (
+                    <Message from={message.role} key={message.id}>
+                      <MessageContent>
+                        {message.content ? (
+                          <MessageResponse>{message.content}</MessageResponse>
+                        ) : (
+                          <span className="assistant-thinking">Analisando…</span>
+                        )}
+                      </MessageContent>
+                    </Message>
+                  ))
+                )}
+              </ConversationContent>
+              <ConversationScrollButton />
+            </Conversation>
+
+            <div className="assistant-composer">
+              {error && <p className="form-error" role="alert">{error}</p>}
+              <form onSubmit={submit}>
+                <Textarea
+                  value={input}
+                  onChange={(event) => setInput(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" && !event.shiftKey) {
+                      event.preventDefault();
+                      if (input.trim()) void send(input);
+                    }
+                  }}
+                  placeholder="Escreva sua mensagem…"
+                  rows={1}
+                  disabled={busy}
+                />
+                <Button type="submit" size="icon-sm" disabled={busy || !input.trim()} aria-label="Enviar mensagem">
+                  <FiArrowUp />
+                </Button>
+              </form>
+            </div>
+          </section>
         </div>
-      </section>
-    </div>
+      )}
+    </>
   );
 }

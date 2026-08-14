@@ -182,7 +182,6 @@ const nav = [
   ["/produtos", "Produtos", FiPackage],
   ["/pedidos", "Pedidos", FiClipboard],
   ["/catalogos", "Catálogos", FiGrid],
-  ["/assistente", "Assistente", FiMessageCircle],
   ["/configuracoes", "Configurações", FiSettings],
 ] as const;
 function Shell({ done }: { done: () => void }) {
@@ -247,26 +246,15 @@ function Shell({ done }: { done: () => void }) {
               <Route path="/produtos" element={<Products />} />
               <Route path="/pedidos" element={<Orders />} />
               <Route path="/catalogos" element={<CatalogLinks />} />
-              <Route
-                path="/assistente"
-                element={
-                  <Suspense
-                    fallback={
-                      <div className="loading-row">
-                        <span className="loader" /> Carregando assistente…
-                      </div>
-                    }
-                  >
-                    <Assistant />
-                  </Suspense>
-                }
-              />
               <Route path="/configuracoes" element={<Settings />} />
               <Route path="*" element={<Navigate to="/dashboard" />} />
             </Routes>
           </motion.div>
         </AnimatePresence>
       </main>
+      <Suspense fallback={null}>
+        <Assistant />
+      </Suspense>
     </div>
   );
 }
@@ -1444,6 +1432,19 @@ function PublicCatalog() {
         minimumQuantity={isWholesale ? 5 : 1}
         orderType={type}
       />
+      <div className="mobile-bottom-bar">
+        <a href="#colecao" className="bottom-bar-item">
+          <FiGrid />
+          <span>Catálogo</span>
+        </a>
+        <button className="bottom-bar-item" onClick={() => setCartOpen(true)}>
+          <div className="bottom-bar-icon-wrap">
+            <FiShoppingBag />
+            {count > 0 && <span className="bottom-bar-badge">{count}</span>}
+          </div>
+          <span>Carrinho</span>
+        </button>
+      </div>
       <footer id="sobre">
         <Brand />
         <p>Essências que contam histórias.</p>

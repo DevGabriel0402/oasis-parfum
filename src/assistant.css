@@ -1,1 +1,166 @@
-.assistant-page{height:calc(100vh - 138px);min-height:620px;display:flex;flex-direction:column}.assistant-head{flex:0 0 auto}.assistant-panel{min-height:0;flex:1;display:grid;grid-template-rows:minmax(0,1fr) auto;overflow:hidden;border:1px solid var(--border);border-radius:var(--radius-xl);background:var(--card);box-shadow:0 1px 3px #0000000a}.assistant-conversation{min-height:0}.assistant-messages{width:min(820px,100%);margin:0 auto;padding:2rem 1.5rem}.assistant-empty{display:grid;place-items:center;gap:.75rem;max-width:650px}.assistant-empty h2,.assistant-empty p{margin:0}.assistant-empty p{color:var(--muted-foreground)}.assistant-empty-icon{width:2.25rem;height:2.25rem}.assistant-suggestions{display:flex;flex-wrap:wrap;justify-content:center;gap:.6rem;margin-top:1rem}.assistant-thinking{color:var(--muted-foreground);animation:assistant-pulse 1.2s ease-in-out infinite}.assistant-composer{border-top:1px solid var(--border);background:var(--background);padding:1rem}.assistant-composer form{position:relative;width:min(820px,100%);margin:0 auto}.assistant-composer textarea{width:100%;min-height:70px;max-height:180px;resize:vertical;padding-right:4rem;background:var(--card)}.assistant-composer form button{position:absolute;right:.75rem;bottom:.75rem}.assistant-composer>small{display:block;margin-top:.6rem;color:var(--muted-foreground);text-align:center}.assistant-composer .form-error{width:min(820px,100%);margin:0 auto .75rem}@keyframes assistant-pulse{50%{opacity:.45}}@media(max-width:760px){.assistant-page{height:calc(100dvh - 122px);min-height:560px}.assistant-head p{max-width:280px}.assistant-messages{padding:1.25rem 1rem}.assistant-suggestions{display:grid;width:100%}}
+.floating-assistant-button {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 28px;
+  background: var(--primary, #111);
+  color: #fff;
+  border: none;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+  cursor: pointer;
+  z-index: 100;
+  transition: transform 0.2s ease;
+}
+
+.floating-assistant-button:hover {
+  transform: scale(1.05);
+}
+
+.floating-assistant-button svg {
+  font-size: 24px;
+}
+
+.floating-assistant-window {
+  position: fixed;
+  bottom: 90px;
+  right: 24px;
+  width: 380px;
+  max-width: calc(100vw - 48px);
+  height: 600px;
+  max-height: calc(100vh - 120px);
+  background: var(--card, #fff);
+  border: 1px solid var(--border, #eaeaea);
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  z-index: 99;
+  overflow: hidden;
+}
+
+.floating-assistant-head {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border, #eaeaea);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--card, #fff);
+}
+
+.floating-assistant-head strong {
+  display: block;
+  font-size: 15px;
+}
+
+.floating-assistant-head small {
+  display: block;
+  font-size: 11px;
+  color: var(--muted-foreground, #666);
+  letter-spacing: 0.05em;
+}
+
+.assistant-panel {
+  min-height: 0;
+  flex: 1;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  overflow: hidden;
+}
+
+.assistant-conversation {
+  min-height: 0;
+  overflow: auto;
+}
+
+.assistant-messages {
+  padding: 20px 16px;
+}
+
+.assistant-empty {
+  display: grid;
+  place-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.assistant-empty h2, .assistant-empty p {
+  margin: 0;
+}
+
+.assistant-empty p {
+  color: var(--muted-foreground, #666);
+  font-size: 13px;
+}
+
+.assistant-empty-icon {
+  width: 32px;
+  height: 32px;
+  margin-bottom: 8px;
+}
+
+.assistant-suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+  width: 100%;
+}
+
+.assistant-thinking {
+  color: var(--muted-foreground, #666);
+  animation: assistant-pulse 1.2s ease-in-out infinite;
+  font-size: 13px;
+}
+
+.assistant-composer {
+  border-top: 1px solid var(--border, #eaeaea);
+  padding: 16px;
+  background: var(--background, #fff);
+}
+
+.assistant-composer form {
+  position: relative;
+}
+
+.assistant-composer textarea {
+  width: 100%;
+  min-height: 48px;
+  max-height: 120px;
+  resize: vertical;
+  padding-right: 48px;
+  background: var(--card, #fff);
+  border: 1px solid var(--border, #eaeaea);
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.assistant-composer form button {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+}
+
+.assistant-composer .form-error {
+  margin: 0 0 12px;
+  font-size: 13px;
+}
+
+@keyframes assistant-pulse {
+  50% { opacity: 0.45; }
+}
+
+@media (max-width: 500px) {
+  .floating-assistant-window {
+    width: calc(100vw - 32px);
+    right: 16px;
+    bottom: 86px;
+  }
+  .floating-assistant-button {
+    right: 16px;
+    bottom: 16px;
+  }
+}

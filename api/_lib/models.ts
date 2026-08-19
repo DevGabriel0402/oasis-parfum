@@ -212,17 +212,17 @@ export async function orders() {
       lines = [];
     }
     return {
-    id: String(pick(data, ["ID", "Pedido", "Número"], `legacy-${rowNumber}`)),
-    date: String(pick(data, ["Data", "Criado em", "Data/Hora"])),
-    customer: String(pick(data, ["Cliente", "Nome"])),
-    phone: String(pick(data, ["Telefone", "WhatsApp", "Celular"])),
-    type: String(pick(data, ["Tipo", "Tabela"], "varejo")).toLowerCase(),
-    items: String(pick(data, ["Itens", "Produtos", "Pedido"])),
-    lines,
-    quantity: number(pick(data, ["Quantidade", "Qtd"])),
-    total: number(pick(data, ["Total", "Valor Total", "Valor"])),
-    status: String(pick(data, ["Status", "Situação"], "Novo")),
-    notes: String(pick(data, ["Observações", "Obs"])),
+      id: String(pick(data, ["ID", "Pedido", "Número"], `legacy-${rowNumber}`)),
+      date: String(pick(data, ["Data", "Criado em", "Data/Hora"])),
+      customer: String(pick(data, ["Cliente", "Nome"])),
+      phone: String(pick(data, ["Telefone", "WhatsApp", "Celular"])),
+      type: String(pick(data, ["Tipo", "Tabela"], "varejo")).toLowerCase(),
+      items: String(pick(data, ["Itens", "Produtos", "Pedido"])),
+      lines,
+      quantity: number(pick(data, ["Quantidade", "Qtd"])),
+      total: number(pick(data, ["Total", "Valor Total", "Valor"])),
+      status: String(pick(data, ["Status", "Situação"], "Novo")),
+      notes: String(pick(data, ["Observações", "Obs"])),
     };
   });
 }

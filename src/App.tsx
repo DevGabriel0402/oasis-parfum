@@ -44,6 +44,7 @@ import CatalogCart from "./CatalogCart";
 import type { CheckoutCustomer } from "./CheckoutDialog";
 import OrderDetailsDialog from "./OrderDetailsDialog";
 import ProductDetailsModal from "./ProductDetailsModal";
+import CatalogPdfActions from "./CatalogPdfGenerator";
 
 const Assistant = lazy(() => import("./Assistant"));
 
@@ -512,9 +513,12 @@ function Products() {
         title="Produtos"
         description="Gerencie fragrâncias, preços e disponibilidade."
         action={
-          <button className="button primary" onClick={() => setEditing(blank)}>
-            <FiPlus /> Novo produto
-          </button>
+          <div style={{ display: "flex", gap: "10px" }}>
+            {products.length > 0 && <CatalogPdfActions products={products} />}
+            <button className="button primary" onClick={() => setEditing(blank)}>
+              <FiPlus /> Novo produto
+            </button>
+          </div>
         }
       />
       {error && <Notice message={error} />}

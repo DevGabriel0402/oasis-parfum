@@ -179,7 +179,7 @@ export async function products() {
         ),
         slug: String(pick(data, ["Slug"], slugify(name) || id)),
         inspiration: String(pick(data, ["Inspiração", "Inspiracao", "Inspiration"])),
-        inspirationImage: String(pick(data, ["Imagem da Inspiração", "Inspiration Image", "Imagem Inspiração"])),
+        inspirationImage: String(pick(data, ["Imagem da Inspiração", "Inspiration Image", "Imagem Inspiração", "URL da imagem de Inspiração"])),
         accords: String(pick(data, ["Acordes", "Accords"])),
         topNotes: String(pick(data, ["Notas de Topo", "Notas Topo", "Top Notes"])),
         heartNotes: String(pick(data, ["Notas de Coração", "Notas de Coracao", "Notas Coração", "Notas Coracao", "Heart Notes"])),

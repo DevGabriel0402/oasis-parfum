@@ -45,6 +45,7 @@ export const api = {
       products: import("./types").Product[];
       whatsapp: string;
       type: string;
+      accordColors: Array<{ name: string; bg: string; text: string }>;
     }>(`/api/catalog?type=${type}`),
   checkout: (data: Record<string, unknown>) =>
     request<{ id: string; total: number }>("/api/checkout", {

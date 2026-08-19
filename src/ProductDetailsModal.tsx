@@ -7,42 +7,22 @@ type Props = {
   close: () => void;
   addToCart: (id: string) => void;
   price: number;
+  accordColors: Array<{ name: string; bg: string; text: string }>;
 };
 
 const money = (value: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value || 0);
 
-export default function ProductDetailsModal({ product, close, addToCart, price }: Props) {
+export default function ProductDetailsModal({ product, close, addToCart, price, accordColors }: Props) {
   const accordsList = product.accords ? product.accords.split(",").map(s => s.trim()).filter(Boolean) : [];
   const topNotes = product.topNotes ? product.topNotes.split(",").map(s => s.trim()).filter(Boolean) : [];
   const heartNotes = product.heartNotes ? product.heartNotes.split(",").map(s => s.trim()).filter(Boolean) : [];
   const baseNotes = product.baseNotes ? product.baseNotes.split(",").map(s => s.trim()).filter(Boolean) : [];
 
-  const ACCORD_COLORS: Record<string, { bg: string; text: string }> = {
-    "doce": { bg: "#EF4444", text: "#fff" },
-    "atalcado": { bg: "#E6D5C3", text: "#111" },
-    "amadeirado": { bg: "#8B4513", text: "#fff" },
-    "floral": { bg: "#FF69B4", text: "#fff" },
-    "aromático": { bg: "#439B8E", text: "#fff" },
-    "cítrico": { bg: "#FFF666", text: "#111" },
-    "fresco especiado": { bg: "#84CC16", text: "#111" },
-    "especiado quente": { bg: "#C2410C", text: "#fff" },
-    "especiado fresco": { bg: "#84CC16", text: "#111" },
-    "frutado": { bg: "#F97316", text: "#fff" },
-    "baunilha": { bg: "#FBBF24", text: "#111" },
-    "âmbar": { bg: "#D97706", text: "#fff" },
-    "almiscarado": { bg: "#94A3B8", text: "#fff" },
-    "terroso": { bg: "#4B5563", text: "#fff" },
-    "verde": { bg: "#22C55E", text: "#fff" },
-    "animálico": { bg: "#78350F", text: "#fff" },
-    "esfumaçado": { bg: "#334155", text: "#fff" },
-    "aquático": { bg: "#38BDF8", text: "#111" },
-    "couro": { bg: "#451A03", text: "#fff" },
-  };
-
   const getAccordStyle = (accord: string, index: number) => {
     const key = accord.toLowerCase().trim();
-    if (ACCORD_COLORS[key]) return ACCORD_COLORS[key];
+    const dynamicMatch = accordColors.find(c => c.name.toLowerCase().trim() === key);
+    if (dynamicMatch) return dynamicMatch;
     
     const defaultColors = [
       { bg: "#8B4513", text: "#fff" },

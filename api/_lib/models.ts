@@ -193,6 +193,15 @@ export async function products() {
     }),
   };
 }
+export async function references() {
+  await ensureSheet("Referências", ["Acorde", "Cor de Fundo", "Cor do Texto"]);
+  const table = await getRows("Referências");
+  return table.rows.map(({ data }) => ({
+    name: String(pick(data, ["Acorde", "Nome", "Referência"])).trim(),
+    bg: String(pick(data, ["Cor de Fundo", "Background", "Fundo"])).trim(),
+    text: String(pick(data, ["Cor do Texto", "Texto", "Letra"])).trim() || "#FFFFFF",
+  })).filter(r => r.name && r.bg);
+}
 export async function orders() {
   await ensureSheet("Pedidos", ORDER_HEADERS);
   const table = await getRows("Pedidos");

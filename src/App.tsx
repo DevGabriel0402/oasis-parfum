@@ -1258,7 +1258,8 @@ function PublicCatalog() {
     [loading, setLoading] = useState(true),
     [cart, setCart] = useState<Record<string, number>>({}),
     [cartOpen, setCartOpen] = useState(false),
-    [detailsOpen, setDetailsOpen] = useState<Product | null>(null);
+    [detailsOpen, setDetailsOpen] = useState<Product | null>(null),
+    [accordColors, setAccordColors] = useState<Array<{ name: string; bg: string; text: string }>>([]);
   const isWholesale = type === "atacado";
   const headerScrolled = useHeaderScrolled();
   useEffect(() => {
@@ -1290,6 +1291,7 @@ function PublicCatalog() {
       .then((r) => {
         setProducts(r.products);
         setWhatsapp(r.whatsapp);
+        setAccordColors(r.accordColors || []);
       })
       .finally(() => setLoading(false));
   }, [type]);
@@ -1544,6 +1546,7 @@ function PublicCatalog() {
             close={() => setDetailsOpen(null)}
             addToCart={addToCart}
             price={price(detailsOpen)}
+            accordColors={accordColors}
           />
         )}
       </AnimatePresence>

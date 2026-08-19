@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { fail, method } from "./_lib/http.js";
-import { catalogPrice, products } from "./_lib/models.js";
+import { catalogPrice, products, references } from "./_lib/models.js";
 import { getConfig } from "./_lib/sheets.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -16,11 +16,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return { ...item, price: catalogPrice(product, type) };
       });
     const configuredWhatsapp = await getConfig("whatsapp_number");
+    const refs = await references();
     res.setHeader("Cache-Control", "no-store");
     return res.json({
       type,
       products: items,
       whatsapp: configuredWhatsapp || process.env.WHATSAPP_NUMBER || "",
+      accordColors: refs,
     });
   } catch (error) {
     return fail(res, error);

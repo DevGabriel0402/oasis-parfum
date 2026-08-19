@@ -7,36 +7,31 @@ const money = (value: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value || 0);
 
 const styles = StyleSheet.create({
-  page: { padding: 32, fontFamily: "Helvetica", fontSize: 10, color: "#111111", backgroundColor: "#ffffff" },
+  page: { padding: 30, fontFamily: "Helvetica", color: "#111111", backgroundColor: "#ffffff" },
   header: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", paddingBottom: 15, borderBottomWidth: 1, borderBottomColor: "#111111", marginBottom: 20 },
-  logo: { width: 140, objectFit: "contain" },
+  logo: { width: 120, objectFit: "contain" },
   headerText: { textAlign: "right" },
-  title: { fontSize: 22, fontFamily: "Helvetica-Bold", marginBottom: 4 },
-  date: { fontSize: 9, color: "#666666" },
-  productCard: { flexDirection: "row", gap: 20, paddingBottom: 25, marginBottom: 25, borderBottomWidth: 1, borderBottomColor: "#eeeeee" },
-  imageCol: { width: "25%", flexDirection: "column", gap: 10, alignItems: "center" },
-  mainImage: { width: 110, height: 110, objectFit: "cover", borderRadius: 4 },
-  inspSection: { alignItems: "center", gap: 4, marginTop: 10 },
-  inspImage: { width: 60, height: 60, objectFit: "contain", borderRadius: 4, backgroundColor: "#fafafa", border: "1pt solid #eaeaea" },
-  inspLabel: { fontSize: 7, color: "#777", textTransform: "uppercase" },
-  infoCol: { width: "75%", flexDirection: "column" },
-  brand: { fontSize: 8, textTransform: "uppercase", color: "#777777", letterSpacing: 1, marginBottom: 3 },
-  prodName: { fontSize: 18, fontFamily: "Helvetica-Bold", marginBottom: 2 },
-  inspirationText: { fontSize: 9, color: "#444444", marginBottom: 10, fontStyle: "italic" },
-  desc: { fontSize: 9, lineHeight: 1.5, color: "#333333", marginBottom: 12 },
+  title: { fontSize: 18, fontFamily: "Helvetica-Bold", marginBottom: 4 },
+  date: { fontSize: 8, color: "#666666" },
   
-  notesGrid: { flexDirection: "row", gap: 15, marginBottom: 12 },
-  notesCol: { flex: 1 },
-  sectionTitle: { fontSize: 8, fontFamily: "Helvetica-Bold", textTransform: "uppercase", marginBottom: 4, color: "#111" },
-  badgesRow: { flexDirection: "row", flexWrap: "wrap", gap: 4 },
-  badge: { backgroundColor: "#f0f0f0", paddingVertical: 3, paddingHorizontal: 6, borderRadius: 10, fontSize: 7, color: "#333" },
+  gridContainer: { flexDirection: "row", flexWrap: "wrap" },
+  gridItem: { width: "31.5%", marginBottom: 20, marginRight: "2.75%", paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: "#eeeeee" },
   
-  pricesBox: { flexDirection: "row", gap: 10, marginTop: "auto", padding: 12, backgroundColor: "#f9f9f9", borderRadius: 6, border: "1pt solid #efefef" },
-  priceItem: { flex: 1 },
-  priceLabel: { fontSize: 7, textTransform: "uppercase", color: "#666", marginBottom: 3, letterSpacing: 0.5 },
-  priceValue: { fontSize: 12, fontFamily: "Helvetica-Bold" },
+  mainImage: { width: "100%", height: 100, objectFit: "contain", marginBottom: 10 },
   
-  footer: { position: "absolute", bottom: 20, left: 32, right: 32, textAlign: "center", fontSize: 8, color: "#999", borderTopWidth: 1, borderTopColor: "#eee", paddingTop: 10 },
+  brand: { fontSize: 7, textTransform: "uppercase", color: "#777777", letterSpacing: 1, marginBottom: 2 },
+  prodName: { fontSize: 11, fontFamily: "Helvetica-Bold", marginBottom: 2 },
+  inspirationText: { fontSize: 7.5, color: "#444444", marginBottom: 8, fontStyle: "italic" },
+  
+  badgesRow: { flexDirection: "row", flexWrap: "wrap", gap: 3, marginBottom: 10 },
+  badge: { backgroundColor: "#f0f0f0", paddingVertical: 2, paddingHorizontal: 4, borderRadius: 4, fontSize: 6, color: "#333" },
+  
+  pricesBox: { marginTop: "auto", padding: 8, backgroundColor: "#f9f9f9", borderRadius: 4, border: "1pt solid #efefef" },
+  priceRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 3 },
+  priceLabel: { fontSize: 6.5, textTransform: "uppercase", color: "#666" },
+  priceValue: { fontSize: 7, fontFamily: "Helvetica-Bold" },
+  
+  footer: { position: "absolute", bottom: 20, left: 32, right: 32, textAlign: "center", fontSize: 7, color: "#999", borderTopWidth: 1, borderTopColor: "#eee", paddingTop: 10 },
 });
 
 const toArray = (str?: string) => str ? str.split(",").map(s => s.trim()).filter(Boolean) : [];
@@ -56,105 +51,59 @@ function CatalogPdfDocument({ products }: { products: Product[] }) {
           </View>
         </View>
 
-        {activeProducts.map((p) => {
-          const accords = toArray(p.accords);
-          const topNotes = toArray(p.topNotes);
-          const heartNotes = toArray(p.heartNotes);
-          const baseNotes = toArray(p.baseNotes);
+        <View style={styles.gridContainer}>
+          {activeProducts.map((p, index) => {
+            const accords = toArray(p.accords).slice(0, 4); // Limit to 4 accords to save space
+            const isLastInRow = (index + 1) % 3 === 0;
 
-          return (
-            <View style={styles.productCard} key={p.id} wrap={false}>
-              <View style={styles.imageCol}>
+            return (
+              <View style={[styles.gridItem, isLastInRow ? { marginRight: 0 } : {}]} key={p.id} wrap={false}>
                 {p.image ? (
                   <Image src={p.image} style={styles.mainImage} />
                 ) : (
-                  <View style={[styles.mainImage, { backgroundColor: "#eee" }]} />
-                )}
-                
-                {(p.inspiration || p.inspirationImage) && (
-                  <View style={styles.inspSection}>
-                    <Text style={styles.inspLabel}>Inspiração</Text>
-                    {p.inspirationImage && p.inspirationImage.trim() !== "" ? (
-                      <Image src={p.inspirationImage.trim()} style={styles.inspImage} />
-                    ) : (
-                      <View style={[styles.inspImage, { justifyContent: "center", alignItems: "center", backgroundColor: "#f9f9f9" }]}>
-                        <Image src={`${window.location.origin}/logo-oasis.png`} style={{ width: 40, height: 20, objectFit: "contain", opacity: 0.4 }} />
-                        <Text style={{ fontSize: 6, color: "#999", marginTop: 4, textTransform: "uppercase" }}>S/ Imagem</Text>
-                      </View>
-                    )}
+                  <View style={[styles.mainImage, { backgroundColor: "#f9f9f9", justifyContent: "center", alignItems: "center" }]}>
+                    <Text style={{ fontSize: 8, color: "#ccc" }}>SEM FOTO</Text>
                   </View>
                 )}
-              </View>
-              
-              <View style={styles.infoCol}>
+                
                 <Text style={styles.brand}>{p.brand || p.category}</Text>
-                <Text style={styles.prodName}>{p.name}</Text>
-                {p.inspiration && (
-                  <Text style={styles.inspirationText}>Inspirado em: {p.inspiration}</Text>
-                )}
+                <Text style={styles.prodName} style={{ fontSize: 11, fontFamily: "Helvetica-Bold", marginBottom: 2 }}>
+                  {p.name.length > 25 ? p.name.substring(0, 25) + "..." : p.name}
+                </Text>
                 
-                {p.description && <Text style={styles.desc}>{p.description}</Text>}
-
-                {accords.length > 0 && (
-                  <View style={{ marginBottom: 10 }}>
-                    <Text style={styles.sectionTitle}>Principais Acordes</Text>
-                    <View style={styles.badgesRow}>
-                      {accords.map(a => <Text key={a} style={styles.badge}>{a}</Text>)}
-                    </View>
-                  </View>
+                {p.inspiration ? (
+                  <Text style={styles.inspirationText}>
+                    Insp: {p.inspiration.length > 25 ? p.inspiration.substring(0, 25) + "..." : p.inspiration}
+                  </Text>
+                ) : (
+                  <Text style={[styles.inspirationText, { color: "transparent" }]}>-</Text>
                 )}
 
-                {(topNotes.length > 0 || heartNotes.length > 0 || baseNotes.length > 0) && (
-                  <View style={styles.notesGrid}>
-                    {topNotes.length > 0 && (
-                      <View style={styles.notesCol}>
-                        <Text style={styles.sectionTitle}>Notas de Topo</Text>
-                        <View style={styles.badgesRow}>
-                          {topNotes.map(n => <Text key={n} style={styles.badge}>{n}</Text>)}
-                        </View>
-                      </View>
-                    )}
-                    {heartNotes.length > 0 && (
-                      <View style={styles.notesCol}>
-                        <Text style={styles.sectionTitle}>Notas de Coração</Text>
-                        <View style={styles.badgesRow}>
-                          {heartNotes.map(n => <Text key={n} style={styles.badge}>{n}</Text>)}
-                        </View>
-                      </View>
-                    )}
-                    {baseNotes.length > 0 && (
-                      <View style={styles.notesCol}>
-                        <Text style={styles.sectionTitle}>Notas de Base</Text>
-                        <View style={styles.badgesRow}>
-                          {baseNotes.map(n => <Text key={n} style={styles.badge}>{n}</Text>)}
-                        </View>
-                      </View>
-                    )}
-                  </View>
-                )}
+                <View style={styles.badgesRow}>
+                  {accords.map(a => <Text key={a} style={styles.badge}>{a}</Text>)}
+                </View>
 
                 <View style={styles.pricesBox}>
-                  <View style={styles.priceItem}>
-                    <Text style={styles.priceLabel}>Preço de Custo</Text>
+                  <View style={styles.priceRow}>
+                    <Text style={styles.priceLabel}>Custo:</Text>
                     <Text style={styles.priceValue}>{money(p.costPrice)}</Text>
                   </View>
-                  <View style={styles.priceItem}>
-                    <Text style={styles.priceLabel}>Preço Atacado</Text>
+                  <View style={styles.priceRow}>
+                    <Text style={styles.priceLabel}>Atacado:</Text>
                     <Text style={styles.priceValue}>{money(p.wholesalePrice)}</Text>
                   </View>
-                  <View style={styles.priceItem}>
-                    <Text style={styles.priceLabel}>Preço Varejo</Text>
+                  <View style={styles.priceRow}>
+                    <Text style={styles.priceLabel}>Varejo:</Text>
                     <Text style={styles.priceValue}>{money(p.retailPrice)}</Text>
                   </View>
                 </View>
               </View>
-            </View>
-          );
-        })}
+            );
+          })}
+        </View>
 
         <View style={styles.footer} fixed>
-          <Text>OASIS IMPORTS • CATÁLOGO GERADO EM {today}</Text>
-          <Text>Este é um documento de uso interno e gerencial.</Text>
+          <Text>OASIS IMPORTS • CATÁLOGO GERADO EM {today} • USO INTERNO</Text>
         </View>
       </Page>
     </Document>

@@ -13,6 +13,13 @@ export type Product = {
   featured: boolean;
   wholesaleMinimum: number;
   slug: string;
+  inspiration?: string;
+  accords?: string;
+  topNotes?: string;
+  heartNotes?: string;
+  baseNotes?: string;
+  longevity?: string;
+  sillage?: string;
 };
 export type Order = {
   id: string;

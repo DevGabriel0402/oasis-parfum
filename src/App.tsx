@@ -43,6 +43,7 @@ import type { Order, Product } from "./types";
 import CatalogCart from "./CatalogCart";
 import type { CheckoutCustomer } from "./CheckoutDialog";
 import OrderDetailsDialog from "./OrderDetailsDialog";
+import ProductDetailsModal from "./ProductDetailsModal";
 
 const Assistant = lazy(() => import("./Assistant"));
 
@@ -472,6 +473,13 @@ const blank = {
   featured: false,
   wholesaleMinimum: 1,
   slug: "",
+  inspiration: "",
+  accords: "",
+  topNotes: "",
+  heartNotes: "",
+  baseNotes: "",
+  longevity: "",
+  sillage: "",
 };
 function Products() {
   const [products, setProducts] = useState<Product[]>([]),
@@ -681,6 +689,34 @@ function ProductModal({
           <label className="wide">
             Descrição
             <textarea rows={3} value={form.description} onChange={field("description")} />
+          </label>
+          <label className="wide">
+            Inspirado em
+            <input value={form.inspiration || ""} onChange={field("inspiration")} />
+          </label>
+          <label className="wide">
+            Acordes Principais (separados por vírgula)
+            <input value={form.accords || ""} onChange={field("accords")} />
+          </label>
+          <label className="wide">
+            Notas de Topo (separadas por vírgula)
+            <input value={form.topNotes || ""} onChange={field("topNotes")} />
+          </label>
+          <label className="wide">
+            Notas de Coração (separadas por vírgula)
+            <input value={form.heartNotes || ""} onChange={field("heartNotes")} />
+          </label>
+          <label className="wide">
+            Notas de Base (separadas por vírgula)
+            <input value={form.baseNotes || ""} onChange={field("baseNotes")} />
+          </label>
+          <label>
+            Longevidade
+            <input value={form.longevity || ""} onChange={field("longevity")} />
+          </label>
+          <label>
+            Rastro
+            <input value={form.sillage || ""} onChange={field("sillage")} />
           </label>
         </div>
         {error && <p className="form-error">{error}</p>}
@@ -1216,7 +1252,8 @@ function PublicCatalog() {
     [sortOrder, setSortOrder] = useState(""),
     [loading, setLoading] = useState(true),
     [cart, setCart] = useState<Record<string, number>>({}),
-    [cartOpen, setCartOpen] = useState(false);
+    [cartOpen, setCartOpen] = useState(false),
+    [detailsOpen, setDetailsOpen] = useState<Product | null>(null);
   const isWholesale = type === "atacado";
   const headerScrolled = useHeaderScrolled();
   useEffect(() => {
@@ -1448,12 +1485,12 @@ function PublicCatalog() {
           <div className="shop-grid">
             {shown.map((p) => (
               <article className="shop-card" key={p.id}>
-                <div className="shop-image">
+                <div className="shop-image" onClick={() => setDetailsOpen(p)} style={{ cursor: "pointer" }}>
                   {p.image ? <img src={p.image} alt={p.name} /> : <span>O</span>}
                   {p.featured && <em>DESTAQUE</em>}
                 </div>
                 <small>{p.brand || p.category}</small>
-                <h3>{p.name}</h3>
+                <h3 onClick={() => setDetailsOpen(p)} style={{ cursor: "pointer" }}>{p.name}</h3>
                 <p>{p.description || "Uma fragrância especial da curadoria Oasis."}</p>
                 <div className="shop-action">
                   <strong aria-label={`Preço ${money(price(p))}`}>
@@ -1495,6 +1532,16 @@ function PublicCatalog() {
           <span>Carrinho</span>
         </button>
       </div>
+      <AnimatePresence>
+        {detailsOpen && (
+          <ProductDetailsModal
+            product={detailsOpen}
+            close={() => setDetailsOpen(null)}
+            addToCart={addToCart}
+            price={price(detailsOpen)}
+          />
+        )}
+      </AnimatePresence>
       <footer id="sobre">
         <Brand />
         <p>Essências que contam histórias.</p>

@@ -7,13 +7,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./components/ui/dialog";
-import type { Order } from "./types";
+import type { Order, Product } from "./types";
 import { formatOrderDate, formatOrderMoney, parseOrderItems } from "./order-utils";
 
 const OrderPdfActions = lazy(() => import("./OrderPdfActions"));
 
 type Props = {
   order: Order | null;
+  products: Product[];
   open: boolean;
   updating: boolean;
   onOpenChange: (open: boolean) => void;
@@ -22,6 +23,7 @@ type Props = {
 
 export default function OrderDetailsDialog({
   order,
+  products,
   open,
   updating,
   onOpenChange,
@@ -79,14 +81,24 @@ export default function OrderDetailsDialog({
             <span>Valor unit.</span>
             <span>Subtotal</span>
           </div>
-          {items.map((item) => (
-            <div className="order-details-row" key={item.id}>
-              <span>{item.name}</span>
-              <b>{item.quantity}</b>
-              <span>{item.unitPrice == null ? "—" : formatOrderMoney(item.unitPrice)}</span>
-              <b>{item.lineTotal == null ? "—" : formatOrderMoney(item.lineTotal)}</b>
-            </div>
-          ))}
+          {items.map((item) => {
+            const product = products.find((p) => p.name === item.name || p.id === item.id);
+            return (
+              <div className="order-details-row" key={item.id}>
+                <div className="order-details-item-with-image">
+                  {product?.image ? (
+                    <img src={product.image} alt="" />
+                  ) : (
+                    <span className="placeholder">O</span>
+                  )}
+                  <span>{item.name}</span>
+                </div>
+                <b>{item.quantity}</b>
+                <span>{item.unitPrice == null ? "—" : formatOrderMoney(item.unitPrice)}</span>
+                <b>{item.lineTotal == null ? "—" : formatOrderMoney(item.lineTotal)}</b>
+              </div>
+            );
+          })}
           <div className="order-details-total">
             <span>Total do pedido</span>
             <strong>{formatOrderMoney(order.total)}</strong>
@@ -102,7 +114,7 @@ export default function OrderDetailsDialog({
 
         <div className="order-details-footer">
           <Suspense fallback={<span className="pdf-loading">Preparando PDF...</span>}>
-            <OrderPdfActions order={order} />
+            <OrderPdfActions order={order} products={products} />
           </Suspense>
           {delivered ? (
             <span className="order-done order-done-large">

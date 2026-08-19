@@ -700,6 +700,7 @@ function ProductModal({
 
 function Orders() {
   const [orders, setOrders] = useState<Order[]>([]),
+    [products, setProducts] = useState<Product[]>([]),
     [error, setError] = useState(""),
     [loading, setLoading] = useState(true),
     [selectedOrder, setSelectedOrder] = useState<Order | null>(null),
@@ -707,9 +708,11 @@ function Orders() {
   function loadOrders() {
     setLoading(true);
     setError("");
-    api
-      .orders()
-      .then((response) => setOrders(response.orders))
+    Promise.all([api.orders(), api.products()])
+      .then(([responseOrders, responseProducts]) => {
+        setOrders(responseOrders.orders);
+        setProducts(responseProducts.products);
+      })
       .catch((reason) => setError(reason.message))
       .finally(() => setLoading(false));
   }
@@ -868,6 +871,7 @@ function Orders() {
       </section>
       <OrderDetailsDialog
         order={selectedOrder}
+        products={products}
         open={Boolean(selectedOrder)}
         updating={Boolean(selectedOrder && updatingId === selectedOrder.id)}
         onOpenChange={(open) => !open && setSelectedOrder(null)}

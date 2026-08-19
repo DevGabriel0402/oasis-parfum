@@ -363,6 +363,29 @@
   border-bottom: 1px solid var(--border);
 }
 
+.order-details-item-with-image {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.order-details-item-with-image img,
+.order-details-item-with-image .placeholder {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.order-details-item-with-image .placeholder {
+  background: var(--border);
+  color: var(--muted-foreground);
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  font-weight: bold;
+}
+
 .order-details-row> :not(:first-child) {
   text-align: right;
 }

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Document, Image, Page, PDFDownloadLink, StyleSheet, Text, View, pdf } from "@react-pdf/renderer";
 import { FiDownload, FiPrinter } from "react-icons/fi";
-import type { Order } from "./types";
+import type { Order, Product } from "./types";
 import { formatOrderDate, formatOrderMoney, parseOrderItems } from "./order-utils";
 
 const styles = StyleSheet.create({
@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
   footer: { position: "absolute", bottom: 28, left: 32, right: 32, paddingTop: 10, borderTopWidth: 1, borderTopColor: "#cfcfcf", flexDirection: "row", justifyContent: "space-between", color: "#707070", fontSize: 6.5 },
 });
 
-function OrderPdfDocument({ order }: { order: Order }) {
+function OrderPdfDocument({ order, products }: { order: Order; products: Product[] }) {
   const items = parseOrderItems(order);
   return (
     <Document title={`Pedido ${order.id} - Oasis Imports`} author="Oasis Imports" subject="Espelho de pedido">
@@ -62,15 +62,22 @@ function OrderPdfDocument({ order }: { order: Order }) {
             <Text style={styles.unitPrice}>VALOR UNIT.</Text>
             <Text style={styles.lineTotal}>SUBTOTAL</Text>
           </View>
-          {items.map((item, index) => (
+          {items.map((item, index) => {
+            const product = products.find((p) => p.name === item.name || p.id === item.id);
+            return (
             <View style={styles.row} key={item.id} wrap={false}>
               <Text style={styles.sequence}>{String(index + 1).padStart(2, "0")}</Text>
-              <Text style={styles.description}>{item.name}</Text>
+              <View style={[styles.description, { flexDirection: "row", alignItems: "center", gap: 5 }]}>
+                {product?.image ? (
+                  <Image src={product.image} style={{ width: 14, height: 14, borderRadius: 2, objectFit: "cover" }} />
+                ) : null}
+                <Text>{item.name}</Text>
+              </View>
               <Text style={styles.quantity}>{item.quantity}</Text>
               <Text style={styles.unitPrice}>{item.unitPrice == null ? "—" : formatOrderMoney(item.unitPrice)}</Text>
               <Text style={styles.lineTotal}>{item.lineTotal == null ? "—" : formatOrderMoney(item.lineTotal)}</Text>
             </View>
-          ))}
+          )})}
         </View>
         <View style={styles.summary}><Text style={styles.totalLabel}>Total do pedido</Text><Text style={styles.total}>{formatOrderMoney(order.total)}</Text></View>
         {order.notes ? <Text style={styles.notes}>OBSERVAÇÕES: {order.notes}</Text> : null}
@@ -83,7 +90,7 @@ function OrderPdfDocument({ order }: { order: Order }) {
   );
 }
 
-export default function OrderPdfActions({ order }: { order: Order }) {
+export default function OrderPdfActions({ order, products }: { order: Order; products: Product[] }) {
   const [previewing, setPreviewing] = useState(false);
   const fileName = `pedido-${order.id.toLowerCase()}.pdf`;
 
@@ -93,7 +100,7 @@ export default function OrderPdfActions({ order }: { order: Order }) {
     setPreviewing(true);
     target.document.title = "Preparando pedido...";
     try {
-      const blob = await pdf(<OrderPdfDocument order={order} />).toBlob();
+      const blob = await pdf(<OrderPdfDocument order={order} products={products} />).toBlob();
       const url = URL.createObjectURL(blob);
       target.location.href = url;
       window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
@@ -109,7 +116,7 @@ export default function OrderPdfActions({ order }: { order: Order }) {
       <button type="button" className="button ghost" onClick={preview} disabled={previewing}>
         <FiPrinter />{previewing ? "Preparando..." : "Visualizar e imprimir"}
       </button>
-      <PDFDownloadLink document={<OrderPdfDocument order={order} />} fileName={fileName} className="button soft">
+      <PDFDownloadLink document={<OrderPdfDocument order={order} products={products} />} fileName={fileName} className="button soft">
         {({ loading }) => <><FiDownload />{loading ? "Gerando PDF..." : "Salvar em PDF"}</>}
       </PDFDownloadLink>
     </div>

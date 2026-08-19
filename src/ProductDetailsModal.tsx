@@ -46,7 +46,12 @@ export default function ProductDetailsModal({ product, close, addToCart, price }
               <span className="eyebrow">{product.brand || product.category}</span>
               <h2>{product.name}</h2>
               {product.inspiration && (
-                <p className="inspiration-note">Inspirado em <strong>{product.inspiration}</strong></p>
+                <div className="inspiration-container">
+                  {product.inspirationImage && (
+                    <img src={product.inspirationImage} alt={product.inspiration} className="inspiration-image" />
+                  )}
+                  <p className="inspiration-note">Inspirado em <strong>{product.inspiration}</strong></p>
+                </div>
               )}
               <p className="product-description-text">{product.description}</p>
               

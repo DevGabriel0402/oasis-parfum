@@ -14,6 +14,7 @@ export type Product = {
   wholesaleMinimum: number;
   slug: string;
   inspiration?: string;
+  inspirationImage?: string;
   accords?: string;
   topNotes?: string;
   heartNotes?: string;

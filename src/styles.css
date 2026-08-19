@@ -1180,10 +1180,25 @@ td {
   font-family: serif;
 }
 
+.inspiration-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.inspiration-image {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid var(--line);
+}
+
 .inspiration-note {
   font-size: 13px;
   color: var(--muted);
-  margin-bottom: 15px;
+  margin-bottom: 0;
 }
 
 .product-description-text {

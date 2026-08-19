@@ -474,6 +474,7 @@ const blank = {
   wholesaleMinimum: 1,
   slug: "",
   inspiration: "",
+  inspirationImage: "",
   accords: "",
   topNotes: "",
   heartNotes: "",
@@ -693,6 +694,10 @@ function ProductModal({
           <label className="wide">
             Inspirado em
             <input value={form.inspiration || ""} onChange={field("inspiration")} />
+          </label>
+          <label className="wide">
+            URL da Imagem da Inspiração
+            <input value={form.inspirationImage || ""} onChange={field("inspirationImage")} />
           </label>
           <label className="wide">
             Acordes Principais (separados por vírgula)

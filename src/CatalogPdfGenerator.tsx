@@ -71,10 +71,17 @@ function CatalogPdfDocument({ products }: { products: Product[] }) {
                   <View style={[styles.mainImage, { backgroundColor: "#eee" }]} />
                 )}
                 
-                {p.inspirationImage && (
+                {(p.inspiration || p.inspirationImage) && (
                   <View style={styles.inspSection}>
                     <Text style={styles.inspLabel}>Inspiração</Text>
-                    <Image src={p.inspirationImage} style={styles.inspImage} />
+                    {p.inspirationImage && p.inspirationImage.trim() !== "" ? (
+                      <Image src={p.inspirationImage.trim()} style={styles.inspImage} />
+                    ) : (
+                      <View style={[styles.inspImage, { justifyContent: "center", alignItems: "center", backgroundColor: "#f9f9f9" }]}>
+                        <Image src={`${window.location.origin}/logo-oasis.png`} style={{ width: 40, height: 20, objectFit: "contain", opacity: 0.4 }} />
+                        <Text style={{ fontSize: 6, color: "#999", marginTop: 4, textTransform: "uppercase" }}>S/ Imagem</Text>
+                      </View>
+                    )}
                   </View>
                 )}
               </View>

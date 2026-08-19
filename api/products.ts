@@ -22,7 +22,7 @@ function payload(body: Record<string, unknown>, id?: string) {
     Slug: body.slug,
     "Inspiração": body.inspiration,
     "Imagem da Inspiração": body.inspirationImage,
-    Acordes: body.accords,
+    "Acordes": body.accords,
     "Notas de Topo": body.topNotes,
     "Notas de Coração": body.heartNotes,
     "Notas de Base": body.baseNotes,

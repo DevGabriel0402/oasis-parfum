@@ -13,5 +13,8 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ["@react-pdf/renderer", "@react-pdf/layout", "yoga-layout"],
   },
-  server: { port: 5173 },
+  server: { 
+    port: 5173,
+    host: "127.0.0.1" 
+  },
 });

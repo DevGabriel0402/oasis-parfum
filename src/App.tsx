@@ -1208,6 +1208,8 @@ function PublicCatalog() {
     [products, setProducts] = useState<Product[]>([]),
     [whatsapp, setWhatsapp] = useState(""),
     [query, setQuery] = useState(""),
+    [selectedBrand, setSelectedBrand] = useState(""),
+    [sortOrder, setSortOrder] = useState(""),
     [loading, setLoading] = useState(true),
     [cart, setCart] = useState<Record<string, number>>({}),
     [cartOpen, setCartOpen] = useState(false);
@@ -1245,14 +1247,23 @@ function PublicCatalog() {
       })
       .finally(() => setLoading(false));
   }, [type]);
-  const shown = products.filter((p) =>
+  const brands = Array.from(new Set(products.map((p) => p.brand).filter(Boolean))).sort();
+  const count = Object.values(cart).reduce((a, b) => a + b, 0);
+  const price = (p: Product) =>
+    Number((p as Product & { price: number }).price || p.retailPrice);
+
+  const shown = products
+    .filter((p) =>
       (p.name + " " + p.brand + " " + p.category)
         .toLowerCase()
         .includes(query.toLowerCase()),
-    ),
-    count = Object.values(cart).reduce((a, b) => a + b, 0),
-    price = (p: Product) =>
-      Number((p as Product & { price: number }).price || p.retailPrice);
+    )
+    .filter((p) => (selectedBrand ? p.brand === selectedBrand : true))
+    .sort((a, b) => {
+      if (sortOrder === "highest") return price(b) - price(a);
+      if (sortOrder === "lowest") return price(a) - price(b);
+      return 0;
+    });
   async function updateQuantity(id: string, quantity: number) {
     setCart((current) => {
       const next = { ...current };
@@ -1390,14 +1401,37 @@ function PublicCatalog() {
             <span className="eyebrow">NOSSA CURADORIA</span>
             <h2>Fragrâncias em destaque</h2>
           </div>
-          <label className="search">
-            <FiSearch />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Buscar fragrância..."
-            />
-          </label>
+          <div className="catalog-filters">
+            <label className="search">
+              <FiSearch />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Buscar fragrância..."
+              />
+            </label>
+            <select
+              value={selectedBrand}
+              onChange={(e) => setSelectedBrand(e.target.value)}
+              className="filter-select"
+            >
+              <option value="">Todas as marcas</option>
+              {brands.map((b) => (
+                <option key={b} value={b}>
+                  {b}
+                </option>
+              ))}
+            </select>
+            <select
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value)}
+              className="filter-select"
+            >
+              <option value="">Relevância</option>
+              <option value="lowest">Menor preço</option>
+              <option value="highest">Maior preço</option>
+            </select>
+          </div>
         </div>
         {loading ? (
           <div className="loading-row">

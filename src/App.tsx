@@ -1249,8 +1249,10 @@ function PublicCatalog() {
   }, [type]);
   const brands = Array.from(new Set(products.map((p) => p.brand).filter(Boolean))).sort();
   const count = Object.values(cart).reduce((a, b) => a + b, 0);
-  const price = (p: Product) =>
-    Number((p as Product & { price: number }).price || p.retailPrice);
+  const price = (p: Product) => {
+    const rawPrice = Number((p as Product & { price: number }).price || p.retailPrice);
+    return Math.round(rawPrice / 5) * 5;
+  };
 
   const shown = products
     .filter((p) =>

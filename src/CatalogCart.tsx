@@ -32,7 +32,10 @@ const money = (value: number) =>
     currency: "BRL",
   }).format(value || 0);
 
-const price = (product: CatalogProduct) => Number(product.price || product.retailPrice);
+const price = (product: CatalogProduct) => {
+  const rawPrice = Number(product.price || product.retailPrice);
+  return Math.round(rawPrice / 5) * 5;
+};
 
 export default function CatalogCart({
   open,

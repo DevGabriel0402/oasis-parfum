@@ -82,7 +82,8 @@ export default function OrderDetailsDialog({
             <span>Subtotal</span>
           </div>
           {items.map((item) => {
-            const product = products.find((p) => p.name === item.name || p.id === item.id);
+            const searchName = item.name.trim().toLowerCase();
+            const product = products.find((p) => p.name.trim().toLowerCase() === searchName) || products.find((p) => p.id === item.id);
             return (
               <div className="order-details-row" key={item.id}>
                 <div className="order-details-item-with-image">

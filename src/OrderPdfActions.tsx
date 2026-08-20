@@ -63,7 +63,8 @@ function OrderPdfDocument({ order, products }: { order: Order; products: Product
             <Text style={styles.lineTotal}>SUBTOTAL</Text>
           </View>
           {items.map((item, index) => {
-            const product = products.find((p) => p.name === item.name || p.id === item.id);
+            const searchName = item.name.trim().toLowerCase();
+            const product = products.find((p) => p.name.trim().toLowerCase() === searchName) || products.find((p) => p.id === item.id);
             return (
             <View style={styles.row} key={item.id} wrap={false}>
               <Text style={styles.sequence}>{String(index + 1).padStart(2, "0")}</Text>

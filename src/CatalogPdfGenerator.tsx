@@ -138,16 +138,16 @@ export default function CatalogPdfActions({ products }: { products: Product[] })
         <label style={{ flexDirection: "row", alignItems: "center", gap: "6px", margin: 0, fontSize: "12px", color: "#3e4d44" }}>
           <input className="checkbox" type="checkbox" checked={options.cost} onChange={e => setOptions({ ...options, cost: e.target.checked })} style={{ width: "auto", margin: 0, accentColor: "#000000ff" }} /> Custo
         </label>
-        <label style={{ flexDirection: "row", alignItems: "center", gap: "6px", margin: 0, fontSize: "12px", color: "#3e4d44" }}>
+        <label style={{ flexDirection: "row", alignItems: "center", gap: "6px", margin: 0, fontSize: "12px", color: "#3e4d44", border: "none" }}>
           <input className="checkbox" type="checkbox" checked={options.retail} onChange={e => setOptions({ ...options, retail: e.target.checked })} style={{ width: "auto", margin: 0, accentColor: "#000000ff" }} /> Varejo
         </label>
-        <label style={{ flexDirection: "row", alignItems: "center", gap: "6px", margin: 0, fontSize: "12px", color: "#3e4d44" }}>
+        <label style={{ flexDirection: "row", alignItems: "center", gap: "6px", margin: 0, fontSize: "12px", color: "#3e4d44", border: "none" }}>
           <input className="checkbox" type="checkbox" checked={options.wholesale} onChange={e => setOptions({ ...options, wholesale: e.target.checked })} style={{ width: "auto", margin: 0, accentColor: "#000000ff" }} /> Atacado
         </label>
-        <label style={{ flexDirection: "row", alignItems: "center", gap: "6px", margin: 0, fontSize: "12px", color: "#3e4d44" }}>
+        <label style={{ flexDirection: "row", alignItems: "center", gap: "6px", margin: 0, fontSize: "12px", color: "#3e4d44", border: "none" }}>
           <input className="checkbox" type="checkbox" checked={options.profit} onChange={e => setOptions({ ...options, profit: e.target.checked })} style={{ width: "auto", margin: 0, accentColor: "#000000ff" }} /> Lucro
         </label>
-        <label style={{ flexDirection: "row", alignItems: "center", gap: "6px", margin: 0, fontSize: "12px", color: "#3e4d44" }}>
+        <label style={{ flexDirection: "row", alignItems: "center", gap: "6px", margin: 0, fontSize: "12px", color: "#3e4d44", border: "none" }}>
           <input className="checkbox" type="checkbox" checked={options.stock} onChange={e => setOptions({ ...options, stock: e.target.checked })} style={{ width: "auto", margin: 0, accentColor: "#000000ff" }} /> Estoque
         </label>
       </div>

@@ -35,6 +35,7 @@ import {
   FiRefreshCw,
   FiSearch,
   FiSettings,
+  FiShare2,
   FiShoppingBag,
   FiTrendingUp,
   FiUser,
@@ -955,6 +956,21 @@ function CatalogLinks() {
     setDone(type);
     setTimeout(() => setDone(""), 1800);
   }
+
+  async function share(type: string, title: string) {
+    const url = origin + "/catalogo/" + type;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Oasis Imports - " + title,
+          text: "Confira nosso catálogo de perfumes importados:",
+          url: url,
+        });
+      } catch (err) {}
+    } else {
+      copy(type);
+    }
+  }
   return (
     <>
       <PageHead
@@ -973,13 +989,18 @@ function CatalogLinks() {
               <p>{text}</p>
               <div className="copy-field">
                 <span>{origin.replace(/^https?:\/\//, "") + "/catalogo/" + type}</span>
-                <button onClick={() => copy(type)}>
+                <button onClick={() => copy(type)} title="Copiar link">
                   {done === type ? <FiCheck /> : <FiCopy />}
                 </button>
               </div>
-              <a className="button soft full" href={"/catalogo/" + type} target="_blank">
-                Abrir catálogo <FiArrowRight />
-              </a>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                <button className="button primary full" onClick={() => share(type, title)}>
+                  <FiShare2 /> Compartilhar
+                </button>
+                <a className="button soft full" href={"/catalogo/" + type} target="_blank">
+                  Abrir <FiArrowRight />
+                </a>
+              </div>
             </div>
           </section>
         ))}

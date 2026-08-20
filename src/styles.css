@@ -401,6 +401,7 @@ textarea:focus {
 .sidebar nav a.active {
   color: white;
   background: #2a5145;
+  transition: all 0.3s ease;
 }
 
 .nav-arrow {
@@ -423,21 +424,25 @@ textarea:focus {
   justify-content: center;
   justify-items: center;
   gap: 15px;
+  transition: all 0.3s ease;
 }
 
 .side-bottom b,
 .side-bottom small {
   display: block;
   font-size: 12px;
+  transition: all 0.3s ease;
 }
 
 .side-bottom small {
   color: #99b4a6;
   margin-top: 3px;
+  transition: all 0.3s ease;
 }
 
 .side-bottom .icon-button {
   color: #c4d3cb;
+  transition: all 0.3s ease;
 }
 
 .admin-avatar {
@@ -461,6 +466,7 @@ textarea:focus {
 .workspace.collapsed {
   margin-left: 80px;
   width: calc(100% - 80px);
+  transition: margin-left 0.25s, width 0.25s;
 }
 
 .topbar {

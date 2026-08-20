@@ -136,19 +136,19 @@ export default function CatalogPdfActions({ products }: { products: Product[] })
     <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
       <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", background: "#f9faf8", padding: "12px", borderRadius: "8px", border: "1px solid #ebede8" }}>
         <label style={{ flexDirection: "row", alignItems: "center", gap: "6px", margin: 0, fontSize: "12px", color: "#3e4d44" }}>
-          <input type="checkbox" checked={options.cost} onChange={e => setOptions({...options, cost: e.target.checked})} style={{ width: "auto", margin: 0 }} /> Custo
+          <input className="checkbox" type="checkbox" checked={options.cost} onChange={e => setOptions({ ...options, cost: e.target.checked })} style={{ width: "auto", margin: 0, accentColor: "#000000ff" }} /> Custo
         </label>
         <label style={{ flexDirection: "row", alignItems: "center", gap: "6px", margin: 0, fontSize: "12px", color: "#3e4d44" }}>
-          <input type="checkbox" checked={options.retail} onChange={e => setOptions({...options, retail: e.target.checked})} style={{ width: "auto", margin: 0 }} /> Varejo
+          <input className="checkbox" type="checkbox" checked={options.retail} onChange={e => setOptions({ ...options, retail: e.target.checked })} style={{ width: "auto", margin: 0, accentColor: "#000000ff" }} /> Varejo
         </label>
         <label style={{ flexDirection: "row", alignItems: "center", gap: "6px", margin: 0, fontSize: "12px", color: "#3e4d44" }}>
-          <input type="checkbox" checked={options.wholesale} onChange={e => setOptions({...options, wholesale: e.target.checked})} style={{ width: "auto", margin: 0 }} /> Atacado
+          <input className="checkbox" type="checkbox" checked={options.wholesale} onChange={e => setOptions({ ...options, wholesale: e.target.checked })} style={{ width: "auto", margin: 0, accentColor: "#000000ff" }} /> Atacado
         </label>
         <label style={{ flexDirection: "row", alignItems: "center", gap: "6px", margin: 0, fontSize: "12px", color: "#3e4d44" }}>
-          <input type="checkbox" checked={options.profit} onChange={e => setOptions({...options, profit: e.target.checked})} style={{ width: "auto", margin: 0 }} /> Lucro
+          <input className="checkbox" type="checkbox" checked={options.profit} onChange={e => setOptions({ ...options, profit: e.target.checked })} style={{ width: "auto", margin: 0, accentColor: "#000000ff" }} /> Lucro
         </label>
         <label style={{ flexDirection: "row", alignItems: "center", gap: "6px", margin: 0, fontSize: "12px", color: "#3e4d44" }}>
-          <input type="checkbox" checked={options.stock} onChange={e => setOptions({...options, stock: e.target.checked})} style={{ width: "auto", margin: 0 }} /> Estoque
+          <input className="checkbox" type="checkbox" checked={options.stock} onChange={e => setOptions({ ...options, stock: e.target.checked })} style={{ width: "auto", margin: 0, accentColor: "#000000ff" }} /> Estoque
         </label>
       </div>
       <div style={{ display: "flex", gap: "10px" }}>

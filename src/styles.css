@@ -274,6 +274,20 @@ textarea:focus {
   display: flex;
   flex-direction: column;
   z-index: 30;
+  transition: width 0.25s;
+}
+.sidebar.collapsed {
+  width: 80px;
+}
+.sidebar.collapsed nav a span,
+.sidebar.collapsed nav a .nav-arrow {
+  display: none;
+}
+.sidebar.collapsed .side-top {
+  justify-content: center;
+}
+.desktop-only {
+  display: inline-block;
 }
 .side-top {
   display: flex;
@@ -313,6 +327,12 @@ textarea:focus {
   align-items: center;
   gap: 10px;
 }
+.sidebar.collapsed .side-bottom {
+  grid-template-columns: 1fr;
+  justify-content: center;
+  justify-items: center;
+  gap: 15px;
+}
 .side-bottom b,
 .side-bottom small {
   display: block;
@@ -339,6 +359,11 @@ textarea:focus {
 .workspace {
   margin-left: 244px;
   width: calc(100% - 244px);
+  transition: margin-left 0.25s, width 0.25s;
+}
+.workspace.collapsed {
+  margin-left: 80px;
+  width: calc(100% - 80px);
 }
 .topbar {
   height: 76px;
@@ -1027,9 +1052,19 @@ td {
   .sidebar {
     transform: translateX(-100%);
     transition: 0.25s;
+    z-index: 1000;
   }
   .sidebar.open {
     transform: none;
+  }
+  .backdrop.mobile-only {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+  }
+  .desktop-only {
+    display: none !important;
   }
   .workspace {
     margin: 0;

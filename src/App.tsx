@@ -188,6 +188,7 @@ const nav = [
 ] as const;
 function Shell({ done }: { done: () => void }) {
   const [open, setOpen] = useState(false),
+    [collapsed, setCollapsed] = useState(false),
     location = useLocation(),
     navigate = useNavigate();
   const headerScrolled = useHeaderScrolled();
@@ -198,16 +199,19 @@ function Shell({ done }: { done: () => void }) {
   }
   return (
     <div className="app-shell">
-      <aside className={"sidebar " + (open ? "open" : "")}>
+      <aside className={`sidebar ${open ? "open" : ""} ${collapsed ? "collapsed" : ""}`}>
         <div className="side-top">
-          <Brand />
+          {!collapsed && <Brand />}
           <button className="icon-button mobile-only" onClick={() => setOpen(false)}>
             <FiX />
+          </button>
+          <button className="icon-button desktop-only" onClick={() => setCollapsed(!collapsed)} aria-label="Recolher menu">
+            <FiMenu />
           </button>
         </div>
         <nav>
           {nav.map(([to, label, Icon]) => (
-            <NavLink key={to} to={to} onClick={() => setOpen(false)}>
+            <NavLink key={to} to={to} onClick={() => setOpen(false)} title={collapsed ? label : undefined}>
               <Icon />
               <span>{label}</span>
               <FiChevronRight className="nav-arrow" />
@@ -216,17 +220,17 @@ function Shell({ done }: { done: () => void }) {
         </nav>
         <div className="side-bottom">
           <div className="admin-avatar">OP</div>
-          <div>
+          <div style={{ display: collapsed ? "none" : "block" }}>
             <b>Oasis Imports</b>
             <small>Administrador</small>
           </div>
-          <button className="icon-button" onClick={logout}>
+          <button className="icon-button" onClick={logout} title={collapsed ? "Sair" : undefined}>
             <FiLogOut />
           </button>
         </div>
       </aside>
       {open && <div className="backdrop mobile-only" onClick={() => setOpen(false)} />}
-      <main className="workspace">
+      <main className={`workspace ${collapsed ? "collapsed" : ""}`}>
         <header
           className={`topbar sticky-site-header${headerScrolled ? " is-scrolled" : ""}`}
         >
@@ -515,9 +519,6 @@ function Products() {
         action={
           <div style={{ display: "flex", gap: "10px" }}>
             {products.length > 0 && <CatalogPdfActions products={products} />}
-            <button className="button primary" onClick={() => setEditing(blank)}>
-              <FiPlus /> Novo produto
-            </button>
           </div>
         }
       />
@@ -542,7 +543,7 @@ function Products() {
         ) : shown.length ? (
           <div className="product-grid">
             {shown.map((p) => (
-              <button className="product-card" key={p.id} onClick={() => setEditing(p)}>
+              <div className="product-card" key={p.id}>
                 <div className="product-image">
                   {p.image ? <img src={p.image} alt="" /> : <span>O</span>}
                   {p.featured && <em>Destaque</em>}
@@ -555,14 +556,14 @@ function Products() {
                     <span>{p.stock} un.</span>
                   </div>
                 </div>
-              </button>
+              </div>
             ))}
           </div>
         ) : (
           <Empty
             icon={<FiPackage />}
             title="Nenhum produto"
-            text="Cadastre sua primeira fragrância."
+            text="Adicione produtos na sua planilha do Google para exibí-los aqui."
           />
         )}
       </section>

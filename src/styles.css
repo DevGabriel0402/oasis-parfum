@@ -618,7 +618,8 @@ td {
 }
 .product-image,
 .shop-image {
-  height: 180px;
+  aspect-ratio: 1/1;
+  width: 100%;
   background: linear-gradient(145deg, #f1eee6, #e1e8df);
   position: relative;
   display: grid;

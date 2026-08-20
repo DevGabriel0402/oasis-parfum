@@ -13,28 +13,19 @@ const styles = StyleSheet.create({
   headerText: { textAlign: "right" },
   title: { fontSize: 18, fontFamily: "Helvetica-Bold", marginBottom: 4 },
   date: { fontSize: 8, color: "#666666" },
-  
-  gridContainer: { flexDirection: "row", flexWrap: "wrap" },
-  gridItem: { width: "31.5%", marginBottom: 20, marginRight: "2.75%", paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: "#eeeeee" },
-  
-  mainImage: { width: "100%", height: 100, objectFit: "contain", marginBottom: 10 },
-  
-  brand: { fontSize: 7, textTransform: "uppercase", color: "#777777", letterSpacing: 1, marginBottom: 2 },
-  prodName: { fontSize: 11, fontFamily: "Helvetica-Bold", marginBottom: 2 },
-  inspirationText: { fontSize: 7.5, color: "#444444", marginBottom: 8, fontStyle: "italic" },
-  
-  badgesRow: { flexDirection: "row", flexWrap: "wrap", gap: 3, marginBottom: 10 },
-  badge: { backgroundColor: "#f0f0f0", paddingVertical: 2, paddingHorizontal: 4, borderRadius: 4, fontSize: 6, color: "#333" },
-  
-  pricesBox: { marginTop: "auto", padding: 8, backgroundColor: "#f9f9f9", borderRadius: 4, border: "1pt solid #efefef" },
-  priceRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 3 },
-  priceLabel: { fontSize: 6.5, textTransform: "uppercase", color: "#666" },
-  priceValue: { fontSize: 7, fontFamily: "Helvetica-Bold" },
-  
+
+  table: { width: "100%", borderStyle: "solid", borderWidth: 1, borderColor: "#eeeeee", borderRightWidth: 0, borderBottomWidth: 0 },
+  tableRow: { flexDirection: "row" },
+  tableRowHeader: { backgroundColor: "#f9f9f9", fontFamily: "Helvetica-Bold" },
+  tableCol: { borderStyle: "solid", borderWidth: 1, borderColor: "#eeeeee", borderLeftWidth: 0, borderTopWidth: 0, padding: 5 },
+  tableColName: { width: "40%" },
+  tableColBrand: { width: "15%" },
+  tableColPrice: { width: "15%", textAlign: "right" },
+  tableCell: { fontSize: 8 },
+  tableCellHeader: { fontSize: 8, fontFamily: "Helvetica-Bold" },
+
   footer: { position: "absolute", bottom: 20, left: 32, right: 32, textAlign: "center", fontSize: 7, color: "#999", borderTopWidth: 1, borderTopColor: "#eee", paddingTop: 10 },
 });
-
-const toArray = (str?: string) => str ? str.split(",").map(s => s.trim()).filter(Boolean) : [];
 
 function CatalogPdfDocument({ products }: { products: Product[] }) {
   const activeProducts = products.filter(p => p.active);
@@ -51,52 +42,23 @@ function CatalogPdfDocument({ products }: { products: Product[] }) {
           </View>
         </View>
 
-        <View style={styles.gridContainer}>
-          {activeProducts.map((p, index) => {
-            const accords = toArray(p.accords).slice(0, 4); // Limit to 4 accords to save space
-            const isLastInRow = (index + 1) % 3 === 0;
-
+        <View style={styles.table}>
+          <View style={[styles.tableRow, styles.tableRowHeader]} fixed>
+            <View style={[styles.tableCol, styles.tableColName]}><Text style={styles.tableCellHeader}>Nome</Text></View>
+            <View style={[styles.tableCol, styles.tableColBrand]}><Text style={styles.tableCellHeader}>Marca</Text></View>
+            <View style={[styles.tableCol, styles.tableColPrice]}><Text style={styles.tableCellHeader}>Custo</Text></View>
+            <View style={[styles.tableCol, styles.tableColPrice]}><Text style={styles.tableCellHeader}>Varejo</Text></View>
+            <View style={[styles.tableCol, styles.tableColPrice]}><Text style={styles.tableCellHeader}>Lucro</Text></View>
+          </View>
+          {activeProducts.map((p) => {
+            const profit = (p.retailPrice || 0) - (p.costPrice || 0);
             return (
-              <View style={[styles.gridItem, isLastInRow ? { marginRight: 0 } : {}]} key={p.id} wrap={false}>
-                {p.image ? (
-                  <Image src={p.image} style={styles.mainImage} />
-                ) : (
-                  <View style={[styles.mainImage, { backgroundColor: "#f9f9f9", justifyContent: "center", alignItems: "center" }]}>
-                    <Text style={{ fontSize: 8, color: "#ccc" }}>SEM FOTO</Text>
-                  </View>
-                )}
-                
-                <Text style={styles.brand}>{p.brand || p.category}</Text>
-                <Text style={styles.prodName} style={{ fontSize: 11, fontFamily: "Helvetica-Bold", marginBottom: 2 }}>
-                  {p.name.length > 25 ? p.name.substring(0, 25) + "..." : p.name}
-                </Text>
-                
-                {p.inspiration ? (
-                  <Text style={styles.inspirationText}>
-                    Insp: {p.inspiration.length > 25 ? p.inspiration.substring(0, 25) + "..." : p.inspiration}
-                  </Text>
-                ) : (
-                  <Text style={[styles.inspirationText, { color: "transparent" }]}>-</Text>
-                )}
-
-                <View style={styles.badgesRow}>
-                  {accords.map(a => <Text key={a} style={styles.badge}>{a}</Text>)}
-                </View>
-
-                <View style={styles.pricesBox}>
-                  <View style={styles.priceRow}>
-                    <Text style={styles.priceLabel}>Custo:</Text>
-                    <Text style={styles.priceValue}>{money(p.costPrice)}</Text>
-                  </View>
-                  <View style={styles.priceRow}>
-                    <Text style={styles.priceLabel}>Atacado:</Text>
-                    <Text style={styles.priceValue}>{money(p.wholesalePrice)}</Text>
-                  </View>
-                  <View style={styles.priceRow}>
-                    <Text style={styles.priceLabel}>Varejo:</Text>
-                    <Text style={styles.priceValue}>{money(p.retailPrice)}</Text>
-                  </View>
-                </View>
+              <View style={styles.tableRow} key={p.id} wrap={false}>
+                <View style={[styles.tableCol, styles.tableColName]}><Text style={styles.tableCell}>{p.name}</Text></View>
+                <View style={[styles.tableCol, styles.tableColBrand]}><Text style={styles.tableCell}>{p.brand || p.category}</Text></View>
+                <View style={[styles.tableCol, styles.tableColPrice]}><Text style={styles.tableCell}>{money(p.costPrice)}</Text></View>
+                <View style={[styles.tableCol, styles.tableColPrice]}><Text style={styles.tableCell}>{money(p.retailPrice)}</Text></View>
+                <View style={[styles.tableCol, styles.tableColPrice]}><Text style={styles.tableCell}>{money(profit)}</Text></View>
               </View>
             );
           })}

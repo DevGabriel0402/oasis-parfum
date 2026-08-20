@@ -10,6 +10,7 @@ import {
   useParams,
 } from "react-router-dom";
 import {
+  FiCheckCircle,
   FiArrowRight,
   FiBox,
   FiCalendar,
@@ -46,6 +47,7 @@ import type { CheckoutCustomer } from "./CheckoutDialog";
 import OrderDetailsDialog from "./OrderDetailsDialog";
 import ProductDetailsModal from "./ProductDetailsModal";
 import CatalogPdfActions from "./CatalogPdfGenerator";
+
 
 const Assistant = lazy(() => import("./Assistant"));
 

@@ -112,14 +112,33 @@ export default function OrderPdfActions({ order, products }: { order: Order; pro
     }
   }
 
+  const [downloading, setDownloading] = useState(false);
+
+  async function downloadPdf() {
+    setDownloading(true);
+    try {
+      const blob = await pdf(<OrderPdfDocument order={order} products={products} />).toBlob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      a.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setDownloading(false);
+    }
+  }
+
   return (
     <div className="order-pdf-actions">
-      <button type="button" className="button ghost" onClick={preview} disabled={previewing}>
+      <button type="button" className="button ghost" onClick={preview} disabled={previewing || downloading}>
         <FiPrinter />{previewing ? "Preparando..." : "Visualizar e imprimir"}
       </button>
-      <PDFDownloadLink document={<OrderPdfDocument order={order} products={products} />} fileName={fileName} className="button soft">
-        {({ loading }) => <><FiDownload />{loading ? "Gerando PDF..." : "Salvar em PDF"}</>}
-      </PDFDownloadLink>
+      <button type="button" className="button soft" onClick={downloadPdf} disabled={previewing || downloading}>
+        <FiDownload />{downloading ? "Gerando PDF..." : "Salvar em PDF"}
+      </button>
     </div>
   );
 }

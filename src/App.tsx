@@ -25,6 +25,7 @@ import {
   FiEye,
   FiLogOut,
   FiMenu,
+  FiArrowLeft,
   FiMessageCircle,
   FiPackage,
   FiPhone,
@@ -193,7 +194,7 @@ function Shell({ done }: { done: () => void }) {
     navigate = useNavigate();
   const headerScrolled = useHeaderScrolled();
   async function logout() {
-    await api.logout().catch(() => {});
+    await api.logout().catch(() => { });
     done();
     navigate("/login");
   }
@@ -206,7 +207,7 @@ function Shell({ done }: { done: () => void }) {
             <FiX />
           </button>
           <button className="icon-button desktop-only" onClick={() => setCollapsed(!collapsed)} aria-label="Recolher menu">
-            <FiMenu />
+            <FiArrowLeft />
           </button>
         </div>
         <nav>
@@ -596,11 +597,11 @@ function ProductModal({
     [error, setError] = useState("");
   const field =
     (key: keyof typeof form) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-      setForm({
-        ...form,
-        [key]: e.target.type === "number" ? Number(e.target.value) : e.target.value,
-      });
+      (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+        setForm({
+          ...form,
+          [key]: e.target.type === "number" ? Number(e.target.value) : e.target.value,
+        });
   async function submit(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
@@ -1032,9 +1033,9 @@ function Settings() {
     setPricingSuccess("");
     setPricingBusy(true);
     try {
-      const data = await api.saveSettings({ 
-        retailPercentage: Number(retailPercentage), 
-        wholesalePercentage: Number(wholesalePercentage) 
+      const data = await api.saveSettings({
+        retailPercentage: Number(retailPercentage),
+        wholesalePercentage: Number(wholesalePercentage)
       });
       setRetailPercentage(data.retailPercentage);
       setWholesalePercentage(data.wholesalePercentage);

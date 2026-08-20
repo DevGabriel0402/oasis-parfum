@@ -93,14 +93,33 @@ export default function CatalogPdfActions({ products }: { products: Product[] })
     }
   }
 
+  const [downloading, setDownloading] = useState(false);
+
+  async function downloadPdf() {
+    setDownloading(true);
+    try {
+      const blob = await pdf(<CatalogPdfDocument products={products} />).toBlob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      a.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setDownloading(false);
+    }
+  }
+
   return (
     <div style={{ display: "flex", gap: "10px" }}>
-      <button type="button" className="button ghost" onClick={preview} disabled={previewing}>
+      <button type="button" className="button ghost" onClick={preview} disabled={previewing || downloading}>
         <FiPrinter />{previewing ? "Preparando..." : "Imprimir Catálogo"}
       </button>
-      <PDFDownloadLink document={<CatalogPdfDocument products={products} />} fileName={fileName} className="button soft">
-        {({ loading }) => <><FiDownload />{loading ? "Gerando PDF..." : "Baixar PDF"}</>}
-      </PDFDownloadLink>
+      <button type="button" className="button soft" onClick={downloadPdf} disabled={previewing || downloading}>
+        <FiDownload />{downloading ? "Gerando PDF..." : "Baixar PDF"}
+      </button>
     </div>
   );
 }

@@ -1064,7 +1064,7 @@ td {
   }
   .product-grid,
   .shop-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
   }
   .toolbar,
   .collection-head {

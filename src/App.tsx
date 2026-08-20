@@ -1,4 +1,5 @@
 import { FormEvent, lazy, Suspense, useEffect, useState } from "react";
+import { Skeleton } from "./components/ui/skeleton";
 import { AnimatePresence, motion } from "motion/react";
 import {
   Navigate,
@@ -320,7 +321,7 @@ function PanelTitle({ title }: { title: string }) {
 function Stat(p: {
   icon: React.ReactNode;
   label: string;
-  value: string;
+  value: React.ReactNode;
   hint: string;
   tone?: string;
 }) {
@@ -380,25 +381,25 @@ function Dashboard() {
         <Stat
           icon={<FiTrendingUp />}
           label="Vendas registradas"
-          value={loading ? "—" : money(total)}
+          value={loading ? <Skeleton className="h-7 w-[120px] my-1" /> : money(total)}
           hint="total da planilha"
         />
         <Stat
           icon={<FiShoppingBag />}
           label="Pedidos"
-          value={loading ? "—" : String(orders.length)}
+          value={loading ? <Skeleton className="h-7 w-[50px] my-1" /> : String(orders.length)}
           hint="todos os períodos"
         />
         <Stat
           icon={<FiBox />}
           label="Produtos ativos"
-          value={loading ? "—" : String(products.filter((p) => p.active).length)}
+          value={loading ? <Skeleton className="h-7 w-[50px] my-1" /> : String(products.filter((p) => p.active).length)}
           hint={products.length + " cadastrados"}
         />
         <Stat
           icon={<FiPackage />}
           label="Estoque baixo"
-          value={loading ? "—" : String(products.filter((p) => p.stock <= 5).length)}
+          value={loading ? <Skeleton className="h-7 w-[50px] my-1" /> : String(products.filter((p) => p.stock <= 5).length)}
           hint="5 unidades ou menos"
           tone="sand"
         />
@@ -541,9 +542,20 @@ function Products() {
           <span>{shown.length} produtos</span>
         </div>
         {loading ? (
-          <div className="loading-row">
-            <span className="loader" />
-            Carregando...
+          <div className="product-grid">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div className="product-card" key={i}>
+                <Skeleton className="aspect-square w-full rounded-b-none" />
+                <div className="product-info space-y-2">
+                  <Skeleton className="h-3 w-12" />
+                  <Skeleton className="h-4 w-[75%]" />
+                  <div className="flex justify-between mt-2">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-4 w-10" />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : shown.length ? (
           <div className="product-grid">
@@ -1494,9 +1506,18 @@ function PublicCatalog() {
           </div>
         </div>
         {loading ? (
-          <div className="loading-row">
-            <span className="loader" />
-            Preparando o catálogo...
+          <div className="shop-grid">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <article className="shop-card" key={i}>
+                <Skeleton className="aspect-square w-full rounded-b-none mb-2" />
+                <Skeleton className="h-2 w-16 mb-1" />
+                <Skeleton className="h-4 w-[80%] mb-3" />
+                <div className="price-tag flex justify-between items-center">
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="h-4 w-16" />
+                </div>
+              </article>
+            ))}
           </div>
         ) : (
           <div className="shop-grid">

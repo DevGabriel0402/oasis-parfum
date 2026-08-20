@@ -18,16 +18,24 @@ const styles = StyleSheet.create({
   tableRow: { flexDirection: "row" },
   tableRowHeader: { backgroundColor: "#f9f9f9", fontFamily: "Helvetica-Bold" },
   tableCol: { borderStyle: "solid", borderWidth: 1, borderColor: "#eeeeee", borderLeftWidth: 0, borderTopWidth: 0, padding: 5 },
-  tableColName: { width: "40%" },
-  tableColBrand: { width: "15%" },
-  tableColPrice: { width: "15%", textAlign: "right" },
+  tableColName: { flex: 2.5 },
+  tableColBrand: { flex: 1.2 },
+  tableColDynamic: { flex: 1, textAlign: "right" },
   tableCell: { fontSize: 8 },
   tableCellHeader: { fontSize: 8, fontFamily: "Helvetica-Bold" },
 
   footer: { position: "absolute", bottom: 20, left: 32, right: 32, textAlign: "center", fontSize: 7, color: "#999", borderTopWidth: 1, borderTopColor: "#eee", paddingTop: 10 },
 });
 
-function CatalogPdfDocument({ products }: { products: Product[] }) {
+export type CatalogPdfOptions = {
+  cost: boolean;
+  retail: boolean;
+  wholesale: boolean;
+  profit: boolean;
+  stock: boolean;
+};
+
+function CatalogPdfDocument({ products, options }: { products: Product[]; options: CatalogPdfOptions }) {
   const activeProducts = products.filter(p => p.active);
   const today = new Date().toLocaleDateString("pt-BR");
 
@@ -46,19 +54,24 @@ function CatalogPdfDocument({ products }: { products: Product[] }) {
           <View style={[styles.tableRow, styles.tableRowHeader]} fixed>
             <View style={[styles.tableCol, styles.tableColName]}><Text style={styles.tableCellHeader}>Nome</Text></View>
             <View style={[styles.tableCol, styles.tableColBrand]}><Text style={styles.tableCellHeader}>Marca</Text></View>
-            <View style={[styles.tableCol, styles.tableColPrice]}><Text style={styles.tableCellHeader}>Custo</Text></View>
-            <View style={[styles.tableCol, styles.tableColPrice]}><Text style={styles.tableCellHeader}>Varejo</Text></View>
-            <View style={[styles.tableCol, styles.tableColPrice]}><Text style={styles.tableCellHeader}>Lucro</Text></View>
+            {options.cost && <View style={[styles.tableCol, styles.tableColDynamic]}><Text style={styles.tableCellHeader}>Custo</Text></View>}
+            {options.wholesale && <View style={[styles.tableCol, styles.tableColDynamic]}><Text style={styles.tableCellHeader}>Atacado</Text></View>}
+            {options.retail && <View style={[styles.tableCol, styles.tableColDynamic]}><Text style={styles.tableCellHeader}>Varejo</Text></View>}
+            {options.profit && <View style={[styles.tableCol, styles.tableColDynamic]}><Text style={styles.tableCellHeader}>Lucro</Text></View>}
+            {options.stock && <View style={[styles.tableCol, styles.tableColDynamic]}><Text style={styles.tableCellHeader}>Estoque</Text></View>}
           </View>
           {activeProducts.map((p) => {
-            const profit = (p.retailPrice || 0) - (p.costPrice || 0);
+            const baseForProfit = options.wholesale && !options.retail ? (p.wholesalePrice || 0) : (p.retailPrice || 0);
+            const profit = baseForProfit - (p.costPrice || 0);
             return (
               <View style={styles.tableRow} key={p.id} wrap={false}>
                 <View style={[styles.tableCol, styles.tableColName]}><Text style={styles.tableCell}>{p.name}</Text></View>
                 <View style={[styles.tableCol, styles.tableColBrand]}><Text style={styles.tableCell}>{p.brand || p.category}</Text></View>
-                <View style={[styles.tableCol, styles.tableColPrice]}><Text style={styles.tableCell}>{money(p.costPrice)}</Text></View>
-                <View style={[styles.tableCol, styles.tableColPrice]}><Text style={styles.tableCell}>{money(p.retailPrice)}</Text></View>
-                <View style={[styles.tableCol, styles.tableColPrice]}><Text style={styles.tableCell}>{money(profit)}</Text></View>
+                {options.cost && <View style={[styles.tableCol, styles.tableColDynamic]}><Text style={styles.tableCell}>{money(p.costPrice)}</Text></View>}
+                {options.wholesale && <View style={[styles.tableCol, styles.tableColDynamic]}><Text style={styles.tableCell}>{money(p.wholesalePrice)}</Text></View>}
+                {options.retail && <View style={[styles.tableCol, styles.tableColDynamic]}><Text style={styles.tableCell}>{money(p.retailPrice)}</Text></View>}
+                {options.profit && <View style={[styles.tableCol, styles.tableColDynamic]}><Text style={styles.tableCell}>{money(profit)}</Text></View>}
+                {options.stock && <View style={[styles.tableCol, styles.tableColDynamic]}><Text style={styles.tableCell}>{p.stock} un.</Text></View>}
               </View>
             );
           })}
@@ -74,6 +87,15 @@ function CatalogPdfDocument({ products }: { products: Product[] }) {
 
 export default function CatalogPdfActions({ products }: { products: Product[] }) {
   const [previewing, setPreviewing] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [options, setOptions] = useState<CatalogPdfOptions>({
+    cost: true,
+    retail: true,
+    wholesale: false,
+    profit: true,
+    stock: false,
+  });
+
   const fileName = `catalogo-oasis-${new Date().toISOString().split("T")[0]}.pdf`;
 
   async function preview() {
@@ -82,7 +104,7 @@ export default function CatalogPdfActions({ products }: { products: Product[] })
     setPreviewing(true);
     target.document.title = "Preparando catálogo...";
     try {
-      const blob = await pdf(<CatalogPdfDocument products={products} />).toBlob();
+      const blob = await pdf(<CatalogPdfDocument products={products} options={options} />).toBlob();
       const url = URL.createObjectURL(blob);
       target.location.href = url;
       window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
@@ -93,12 +115,10 @@ export default function CatalogPdfActions({ products }: { products: Product[] })
     }
   }
 
-  const [downloading, setDownloading] = useState(false);
-
   async function downloadPdf() {
     setDownloading(true);
     try {
-      const blob = await pdf(<CatalogPdfDocument products={products} />).toBlob();
+      const blob = await pdf(<CatalogPdfDocument products={products} options={options} />).toBlob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -113,13 +133,32 @@ export default function CatalogPdfActions({ products }: { products: Product[] })
   }
 
   return (
-    <div style={{ display: "flex", gap: "10px" }}>
-      <button type="button" className="button ghost" onClick={preview} disabled={previewing || downloading}>
-        <FiPrinter />{previewing ? "Preparando..." : "Imprimir Catálogo"}
-      </button>
-      <button type="button" className="button soft" onClick={downloadPdf} disabled={previewing || downloading}>
-        <FiDownload />{downloading ? "Gerando PDF..." : "Baixar PDF"}
-      </button>
+    <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", background: "#f9faf8", padding: "12px", borderRadius: "8px", border: "1px solid #ebede8" }}>
+        <label style={{ flexDirection: "row", alignItems: "center", gap: "6px", margin: 0, fontSize: "12px", color: "#3e4d44" }}>
+          <input type="checkbox" checked={options.cost} onChange={e => setOptions({...options, cost: e.target.checked})} style={{ width: "auto", margin: 0 }} /> Custo
+        </label>
+        <label style={{ flexDirection: "row", alignItems: "center", gap: "6px", margin: 0, fontSize: "12px", color: "#3e4d44" }}>
+          <input type="checkbox" checked={options.retail} onChange={e => setOptions({...options, retail: e.target.checked})} style={{ width: "auto", margin: 0 }} /> Varejo
+        </label>
+        <label style={{ flexDirection: "row", alignItems: "center", gap: "6px", margin: 0, fontSize: "12px", color: "#3e4d44" }}>
+          <input type="checkbox" checked={options.wholesale} onChange={e => setOptions({...options, wholesale: e.target.checked})} style={{ width: "auto", margin: 0 }} /> Atacado
+        </label>
+        <label style={{ flexDirection: "row", alignItems: "center", gap: "6px", margin: 0, fontSize: "12px", color: "#3e4d44" }}>
+          <input type="checkbox" checked={options.profit} onChange={e => setOptions({...options, profit: e.target.checked})} style={{ width: "auto", margin: 0 }} /> Lucro
+        </label>
+        <label style={{ flexDirection: "row", alignItems: "center", gap: "6px", margin: 0, fontSize: "12px", color: "#3e4d44" }}>
+          <input type="checkbox" checked={options.stock} onChange={e => setOptions({...options, stock: e.target.checked})} style={{ width: "auto", margin: 0 }} /> Estoque
+        </label>
+      </div>
+      <div style={{ display: "flex", gap: "10px" }}>
+        <button type="button" className="button ghost" onClick={preview} disabled={previewing || downloading} style={{ flex: 1 }}>
+          <FiPrinter />{previewing ? "Preparando..." : "Imprimir Catálogo"}
+        </button>
+        <button type="button" className="button soft" onClick={downloadPdf} disabled={previewing || downloading} style={{ flex: 1 }}>
+          <FiDownload />{downloading ? "Gerando PDF..." : "Baixar PDF"}
+        </button>
+      </div>
     </div>
   );
 }

@@ -116,10 +116,10 @@ export default function App() {
     </Routes>
   );
 }
-function Brand() {
+function Brand({ collapsed }: { collapsed?: boolean }) {
   return (
-    <div className="brand">
-      <img src="/logo-oasis.png" alt="Oasis Imports" />
+    <div className={`brand ${collapsed ? "collapsed" : ""}`}>
+      <img src={collapsed ? "/favicon.png" : "/logo-oasis.png"} alt="Oasis Imports" />
     </div>
   );
 }
@@ -153,29 +153,31 @@ function Login({ done }: { done: () => void }) {
           <label>
             Senha de acesso
             <input
-              autoFocus
               type="password"
+              placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Digite sua senha"
+              disabled={busy}
+              autoFocus
             />
           </label>
-          {error && <p className="form-error">{error}</p>}
-          <button className="button primary full" disabled={busy}>
-            {busy ? "Entrando..." : "Entrar no painel"}
-            <FiArrowRight />
+          <button className="button primary" disabled={busy}>
+            {busy ? "Entrando..." : "Acessar painel"} <FiArrowRight />
           </button>
+          {error && <p className="form-error">{error}</p>}
         </form>
-        <small className="secure-note">Acesso seguro e sessão protegida</small>
+        <span className="secure-note">
+          <FiCheckCircle /> Acesso restrito
+        </span>
       </motion.section>
-      <aside className="login-art">
+      <div className="login-art desktop-only">
         <div className="orb one" />
         <div className="orb two" />
         <div className="quote">
-          <span>ESSÊNCIA · ELEGÂNCIA · PRESENÇA</span>
-          <h2>Perfumes que transformam momentos em memórias.</h2>
+          <span>CURADORIA</span>
+          <h2>Um bom perfume chega antes de você.</h2>
         </div>
-      </aside>
+      </div>
     </main>
   );
 }
@@ -202,11 +204,11 @@ function Shell({ done }: { done: () => void }) {
     <div className="app-shell">
       <aside className={`sidebar ${open ? "open" : ""} ${collapsed ? "collapsed" : ""}`}>
         <div className="side-top">
-          {!collapsed && <Brand />}
+          <Brand collapsed={collapsed} />
           <button className="icon-button mobile-only" onClick={() => setOpen(false)}>
             <FiX />
           </button>
-          <button className="icon-button desktop-only" onClick={() => setCollapsed(!collapsed)} aria-label="Recolher menu">
+          <button className={`icon-button desktop-only toggle-collapse ${collapsed ? "is-collapsed" : ""}`} onClick={() => setCollapsed(!collapsed)} aria-label="Recolher menu">
             <FiArrowLeft />
           </button>
         </div>

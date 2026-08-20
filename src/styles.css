@@ -279,6 +279,34 @@ textarea:focus {
 .sidebar.collapsed {
   width: 80px;
 }
+.sidebar .toggle-collapse {
+  position: absolute;
+  right: -16px;
+  top: 35px;
+  background: white;
+  color: #153b30;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: transform 0.3s;
+  z-index: 10;
+}
+.sidebar .toggle-collapse:hover {
+  background: #f1eee6;
+}
+.sidebar .toggle-collapse.is-collapsed {
+  transform: rotate(180deg);
+}
+.brand.collapsed img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
 .sidebar.collapsed nav a span,
 .sidebar.collapsed nav a .nav-arrow {
   display: none;

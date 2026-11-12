@@ -19,6 +19,7 @@ import {
   FiChevronRight,
   FiClipboard,
   FiCopy,
+  FiDatabase,
   FiDollarSign,
   FiGrid,
   FiHome,
@@ -49,6 +50,7 @@ import type { CheckoutCustomer } from "./CheckoutDialog";
 import OrderDetailsDialog from "./OrderDetailsDialog";
 import ProductDetailsModal from "./ProductDetailsModal";
 import CatalogPdfActions from "./CatalogPdfGenerator";
+import { syncApiToFirebase, subscribeSyncStatus, type SyncMetadata } from "./lib/firebaseService";
 
 
 const Assistant = lazy(() => import("./Assistant"));
@@ -1023,7 +1025,28 @@ function Settings() {
     [wholesalePercentage, setWholesalePercentage] = useState<number | "">(""),
     [pricingBusy, setPricingBusy] = useState(false),
     [pricingError, setPricingError] = useState(""),
-    [pricingSuccess, setPricingSuccess] = useState("");
+    [pricingSuccess, setPricingSuccess] = useState(""),
+    [syncMeta, setSyncMeta] = useState<SyncMetadata | null>(null),
+    [syncing, setSyncing] = useState(false),
+    [syncFeedback, setSyncFeedback] = useState("");
+
+  useEffect(() => {
+    const unsub = subscribeSyncStatus((meta) => setSyncMeta(meta));
+    return () => unsub();
+  }, []);
+
+  async function handleSyncFirebase() {
+    setSyncing(true);
+    setSyncFeedback("");
+    try {
+      const result = await syncApiToFirebase();
+      setSyncFeedback(`Sincronizado com sucesso! ${result.productCount} produtos e ${result.orderCount} pedidos salvos no Firebase.`);
+    } catch (err) {
+      setSyncFeedback(err instanceof Error ? err.message : "Erro ao sincronizar com o Firebase.");
+    } finally {
+      setSyncing(false);
+    }
+  }
   useEffect(() => {
     api
       .settings()
@@ -1261,6 +1284,44 @@ function Settings() {
               <FiArrowRight />
             </button>
           </form>
+        </section>
+        <section className="panel">
+          <PanelTitle title="Firebase Firestore" />
+          <div className="setting-row">
+            <FiDatabase />
+            <div>
+              <b>oasis-imports.firebaseapp.com</b>
+              <p>Base de dados concentrada e tempo real.</p>
+            </div>
+          </div>
+          {syncMeta?.lastSyncAt && (
+            <div className="setting-row">
+              <FiCheck />
+              <div>
+                <b>Última sincronização</b>
+                <p>
+                  {new Date(syncMeta.lastSyncAt).toLocaleString("pt-BR")} •{" "}
+                  {syncMeta.productCount} produtos • {syncMeta.orderCount} pedidos
+                </p>
+              </div>
+            </div>
+          )}
+          {syncFeedback && (
+            <p className="form-success" role="status" style={{ marginTop: "10px" }}>
+              <FiCheck />
+              {syncFeedback}
+            </p>
+          )}
+          <button
+            type="button"
+            className="button primary"
+            onClick={handleSyncFirebase}
+            disabled={syncing}
+            style={{ marginTop: "12px", width: "100%" }}
+          >
+            <FiRefreshCw className={syncing ? "spin" : ""} />
+            {syncing ? "Sincronizando com o Firebase..." : "Sincronizar Dados da API com o Firebase"}
+          </button>
         </section>
         <section className="panel">
           <PanelTitle title="Segurança" />

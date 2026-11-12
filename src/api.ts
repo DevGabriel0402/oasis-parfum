@@ -1,3 +1,11 @@
+import {
+  saveProductToFirebase,
+  saveOrderToFirebase,
+  updateOrderStatusInFirebase,
+  saveSettingsToFirebase,
+  syncApiToFirebase,
+} from "./lib/firebaseService";
+
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
   const response = await fetch(url, {
     credentials: "include",
@@ -9,6 +17,7 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
     throw new Error(data.error || "Não foi possível concluir a operação.");
   return data;
 }
+
 export const api = {
   session: () => request<{ authenticated: boolean }>("/api/auth?action=session"),
   login: (password: string) =>
@@ -22,24 +31,33 @@ export const api = {
       method: "PUT",
       body: JSON.stringify({ current, next }),
     }),
-  settings: () => request<{ whatsapp: string, retailPercentage: number, wholesalePercentage: number }>("/api/settings"),
-  saveSettings: (data: { whatsapp?: string, retailPercentage?: number, wholesalePercentage?: number }) =>
-    request<{ ok: boolean; whatsapp: string, retailPercentage: number, wholesalePercentage: number }>("/api/settings", {
+  settings: () => request<{ whatsapp: string; retailPercentage: number; wholesalePercentage: number }>("/api/settings"),
+  saveSettings: async (data: { whatsapp?: string; retailPercentage?: number; wholesalePercentage?: number }) => {
+    const res = await request<{ ok: boolean; whatsapp: string; retailPercentage: number; wholesalePercentage: number }>("/api/settings", {
       method: "PUT",
       body: JSON.stringify(data),
-    }),
+    });
+    saveSettingsToFirebase(data).catch((err) => console.warn("Firebase sync settings error:", err));
+    return res;
+  },
   products: () => request<{ products: import("./types").Product[] }>("/api/products"),
-  saveProduct: (product: Record<string, unknown>, editing: boolean) =>
-    request("/api/products", {
+  saveProduct: async (product: Record<string, unknown>, editing: boolean) => {
+    const res = await request("/api/products", {
       method: editing ? "PUT" : "POST",
       body: JSON.stringify(product),
-    }),
+    });
+    saveProductToFirebase(product as any).catch((err) => console.warn("Firebase sync product error:", err));
+    return res;
+  },
   orders: () => request<{ orders: import("./types").Order[] }>("/api/orders"),
-  updateOrderStatus: (id: string, status: "Novo" | "Entregue") =>
-    request<{ ok: boolean; id: string; status: string }>("/api/orders", {
+  updateOrderStatus: async (id: string, status: "Novo" | "Entregue") => {
+    const res = await request<{ ok: boolean; id: string; status: string }>("/api/orders", {
       method: "PUT",
       body: JSON.stringify({ id, status }),
-    }),
+    });
+    updateOrderStatusInFirebase(id, status).catch((err) => console.warn("Firebase sync order status error:", err));
+    return res;
+  },
   catalog: (type: string) =>
     request<{
       products: import("./types").Product[];
@@ -47,9 +65,20 @@ export const api = {
       type: string;
       accordColors: Array<{ name: string; bg: string; text: string }>;
     }>(`/api/catalog?type=${type}`),
-  checkout: (data: Record<string, unknown>) =>
-    request<{ id: string; total: number }>("/api/checkout", {
+  checkout: async (data: Record<string, unknown>) => {
+    const res = await request<{ id: string; total: number }>("/api/checkout", {
       method: "POST",
       body: JSON.stringify(data),
-    }),
+    });
+    saveOrderToFirebase({
+      ...data,
+      id: res.id,
+      total: res.total,
+      date: new Date().toISOString(),
+      status: "Novo",
+    } as any).catch((err) => console.warn("Firebase sync checkout error:", err));
+    return res;
+  },
+  // Firebase Sync
+  syncWithFirebase: () => syncApiToFirebase(),
 };

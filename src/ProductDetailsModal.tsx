@@ -1,6 +1,7 @@
 import { motion } from "motion/react";
 import { FiX, FiShoppingBag } from "react-icons/fi";
 import type { Product } from "./types";
+import { normalizeImageUrl } from "./lib/utils";
 
 type Props = {
   product: Product;
@@ -57,7 +58,7 @@ export default function ProductDetailsModal({ product, close, addToCart, price, 
         <div className="product-details-content">
           <div className="product-details-header-section">
             <div className="product-details-image">
-              {product.image ? <img src={product.image} alt={product.name} /> : <span>O</span>}
+              {product.image ? <img src={normalizeImageUrl(product.image)} alt={product.name} /> : <span>O</span>}
             </div>
             <div className="product-details-title-area">
               <span className="eyebrow">{product.brand || product.category}</span>
@@ -65,7 +66,7 @@ export default function ProductDetailsModal({ product, close, addToCart, price, 
               {product.inspiration && (
                 <div className="inspiration-container">
                   {product.inspirationImage && (
-                    <img src={product.inspirationImage} alt={product.inspiration} className="inspiration-image" />
+                    <img src={normalizeImageUrl(product.inspirationImage)} alt={product.inspiration} className="inspiration-image" />
                   )}
                   <p className="inspiration-note">Inspirado em <strong>{product.inspiration}</strong></p>
                 </div>

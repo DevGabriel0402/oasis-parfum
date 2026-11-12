@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/sheet";
 import type { Product } from "./types";
 import CheckoutDialog, { type CheckoutCustomer } from "./CheckoutDialog";
+import { normalizeImageUrl } from "./lib/utils";
 
 type CatalogProduct = Product & { price?: number };
 
@@ -33,8 +34,7 @@ const money = (value: number) =>
   }).format(value || 0);
 
 const price = (product: CatalogProduct) => {
-  const rawPrice = Number(product.price || product.retailPrice);
-  return Math.round(rawPrice / 5) * 5;
+  return Number(product.price ?? product.retailPrice ?? 0);
 };
 
 export default function CatalogCart({
@@ -80,7 +80,7 @@ export default function CatalogCart({
             items.map((product) => (
               <motion.article layout className="cart-line" key={product.id}>
                 <div className="cart-line-image">
-                  {product.image ? <img src={product.image} alt="" /> : <span>O</span>}
+                  {product.image ? <img src={normalizeImageUrl(product.image)} alt="" /> : <span>O</span>}
                 </div>
                 <div className="cart-line-info">
                   <small>{product.brand}</small>

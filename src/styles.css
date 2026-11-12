@@ -1019,7 +1019,7 @@ td {
 }
 
 .public-page {
-  background: #f8f7f1;
+  background: #ffffff;
   min-height: 100vh;
 }
 
@@ -1029,7 +1029,8 @@ td {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #fbfbf7;
+  background: #ffffff;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .public-header nav {

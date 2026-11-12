@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { Document, Image, Page, StyleSheet, Text, View, pdf } from "@react-pdf/renderer";
 import { FiDownload, FiPrinter, FiDatabase, FiCheckCircle, FiLoader } from "react-icons/fi";
 import type { Product } from "./types";
-import { getProductsFromFirebase } from "./lib/firebaseService";
+import { getProductsFromFirebase, getSettingsFromFirebase, type AppSettings } from "./lib/firebaseService";
+import { normalizeImageUrl } from "./lib/utils";
 
 const money = (value: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value || 0);
@@ -120,7 +121,7 @@ const styles = StyleSheet.create({
     padding: 24,
     fontFamily: "Helvetica",
     color: "#111111",
-    backgroundColor: "#fcfbf9",
+    backgroundColor: "#ffffff",
   },
   header: {
     flexDirection: "row",
@@ -128,7 +129,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: "#e5e0d8",
+    borderBottomColor: "#e5e7eb",
     marginBottom: 14,
   },
   headerBrand: {
@@ -166,7 +167,7 @@ const styles = StyleSheet.create({
     height: 345,
     backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#e8e5dc",
+    borderColor: "#e5e7eb",
     borderRadius: 6,
     padding: 10,
     marginBottom: 10,
@@ -176,7 +177,7 @@ const styles = StyleSheet.create({
   imageBox: {
     width: "100%",
     height: 140,
-    backgroundColor: "#f7f6f2",
+    backgroundColor: "#ffffff",
     borderRadius: 4,
     alignItems: "center",
     justifyContent: "center",
@@ -301,15 +302,22 @@ function CatalogPdfDocument({
   products,
   options,
   source = "Firebase",
+  settings,
 }: {
   products: Product[];
   options: CatalogPdfOptions;
   source?: string;
+  settings?: AppSettings | null;
 }) {
   const activeProducts = products.filter((p) => p.active);
   const today = new Date().toLocaleDateString("pt-BR");
   // Divide em páginas de 4 produtos cada (2x2)
   const productChunks = chunkArray(activeProducts, 4);
+
+  const retailMargin =
+    Number(settings?.retailPercentage) > 0 ? Number(settings!.retailPercentage) : 30;
+  const wholesaleMargin =
+    Number(settings?.wholesalePercentage) > 0 ? Number(settings!.wholesalePercentage) : 15;
 
   return (
     <Document title="Catálogo Oficial de Produtos - Oasis Imports" author="Oasis Imports">
@@ -358,9 +366,23 @@ function CatalogPdfDocument({
 
           <View style={styles.grid}>
             {chunk.map((p) => {
+              const costPrice = Number(p.costPrice) || 0;
+              const retailPrice =
+                Number(p.retailPrice) > 0
+                  ? Number(p.retailPrice)
+                  : costPrice > 0
+                  ? Math.round(costPrice * (1 + retailMargin / 100) * 100) / 100
+                  : 0;
+              const wholesalePrice =
+                Number(p.wholesalePrice) > 0
+                  ? Number(p.wholesalePrice)
+                  : costPrice > 0
+                  ? Math.round(costPrice * (1 + wholesaleMargin / 100) * 100) / 100
+                  : 0;
+
               const baseForProfit =
-                options.wholesale && !options.retail ? p.wholesalePrice || 0 : p.retailPrice || 0;
-              const profit = baseForProfit - (p.costPrice || 0);
+                options.wholesale && !options.retail ? wholesalePrice : retailPrice;
+              const profit = baseForProfit - costPrice;
               const hasValidImage = p.image && typeof p.image === "string" && p.image.startsWith("http");
 
               return (
@@ -368,7 +390,7 @@ function CatalogPdfDocument({
                   {/* IMAGEM DO PRODUTO */}
                   <View style={styles.imageBox}>
                     {hasValidImage ? (
-                      <Image style={styles.productImage} src={p.image} />
+                      <Image style={styles.productImage} src={normalizeImageUrl(p.image)} />
                     ) : (
                       <View style={styles.imagePlaceholder}>
                         <Text style={styles.placeholderText}>OASIS</Text>
@@ -393,19 +415,19 @@ function CatalogPdfDocument({
                     {options.retail && (
                       <View style={styles.priceRow}>
                         <Text style={styles.priceLabel}>Preço Varejo:</Text>
-                        <Text style={styles.priceValueRetail}>{money(p.retailPrice)}</Text>
+                        <Text style={styles.priceValueRetail}>{money(retailPrice)}</Text>
                       </View>
                     )}
                     {options.wholesale && (
                       <View style={styles.priceRow}>
                         <Text style={styles.priceLabel}>Preço Atacado:</Text>
-                        <Text style={styles.priceValueWholesale}>{money(p.wholesalePrice)}</Text>
+                        <Text style={styles.priceValueWholesale}>{money(wholesalePrice)}</Text>
                       </View>
                     )}
                     {options.cost && (
                       <View style={styles.priceRow}>
                         <Text style={styles.priceLabel}>Custo:</Text>
-                        <Text style={styles.priceValueCost}>{money(p.costPrice)}</Text>
+                        <Text style={styles.priceValueCost}>{money(costPrice)}</Text>
                       </View>
                     )}
                     {options.profit && (
@@ -443,6 +465,7 @@ function CatalogPdfDocument({
 export default function CatalogPdfActions({ products: initialProducts }: { products: Product[] }) {
   const [useFirebase, setUseFirebase] = useState(true);
   const [resolvedProducts, setResolvedProducts] = useState<Product[]>(initialProducts);
+  const [settings, setSettings] = useState<AppSettings | null>(null);
   const [sourceName, setSourceName] = useState("API Local");
 
   // Opções de exibição de colunas/preços
@@ -462,28 +485,35 @@ export default function CatalogPdfActions({ products: initialProducts }: { produ
 
   const fileName = `catalogo-oasis-${new Date().toISOString().split("T")[0]}.pdf`;
 
-  // 1. Carrega produtos atualizados do Firebase ou props
+  // 1. Carrega produtos atualizados do Firebase e configurações de precificação
   useEffect(() => {
     let active = true;
-    async function fetchProducts() {
-      if (useFirebase) {
-        try {
-          const fbProducts = await getProductsFromFirebase();
-          if (active && fbProducts && fbProducts.length > 0) {
-            setResolvedProducts(fbProducts);
-            setSourceName("Firebase Firestore");
-            return;
-          }
-        } catch {
-          // fallback
+    async function fetchData() {
+      try {
+        const [fbProducts, fbSettings] = await Promise.all([
+          useFirebase ? getProductsFromFirebase().catch(() => []) : Promise.resolve([]),
+          getSettingsFromFirebase().catch(() => ({
+            whatsapp: "",
+            retailPercentage: 30,
+            wholesalePercentage: 15,
+          })),
+        ]);
+        if (!active) return;
+        if (fbSettings) setSettings(fbSettings);
+        if (fbProducts && fbProducts.length > 0) {
+          setResolvedProducts(fbProducts);
+          setSourceName("Firebase Firestore");
+          return;
         }
+      } catch {
+        // fallback
       }
       if (active) {
         setResolvedProducts(initialProducts);
         setSourceName("API Local");
       }
     }
-    fetchProducts();
+    fetchData();
     return () => {
       active = false;
     };
@@ -504,6 +534,7 @@ export default function CatalogPdfActions({ products: initialProducts }: { produ
             products={resolvedProducts}
             options={options}
             source={sourceName}
+            settings={settings}
           />
         );
         const blob = await pdf(doc).toBlob();
@@ -534,7 +565,7 @@ export default function CatalogPdfActions({ products: initialProducts }: { produ
       isCancelled = true;
       clearTimeout(timer);
     };
-  }, [resolvedProducts, options, sourceName]);
+  }, [resolvedProducts, options, sourceName, settings]);
 
   // Limpeza de Blob ao desmontar o componente
   useEffect(() => {

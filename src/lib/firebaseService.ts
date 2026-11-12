@@ -5,15 +5,15 @@ import {
   getDocs,
   setDoc,
   updateDoc,
+  deleteDoc,
   onSnapshot,
-  query,
-  orderBy,
   serverTimestamp,
   writeBatch,
-  type Unsubscribe,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import type { Product, Order } from "../types";
+
+export type Unsubscribe = () => void;
 
 export type SyncMetadata = {
   lastSyncAt: string | null;
@@ -29,91 +29,48 @@ export type AppSettings = {
   wholesalePercentage: number;
 };
 
-// ==========================================
-// 1. SINCRONIZAÇÃO COMPLETA: API -> FIREBASE
-// ==========================================
-export async function syncApiToFirebase(): Promise<SyncMetadata> {
-  const metaRef = doc(db, "metadata", "sync");
+// Firestore rejeita campos "undefined"; remove-os antes de gravar
+function clean<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value));
+}
 
-  // Marca início do sync
-  await setDoc(metaRef, { status: "syncing", startedAt: new Date().toISOString() }, { merge: true }).catch(() => {});
+/**
+ * Salva múltiplos produtos em lote (WriteBatch) no Firestore.
+ */
+export async function saveProductsBatchToFirebase(
+  products: Array<Partial<Product>>,
+): Promise<number> {
+  const valid = products.filter((p) => p && (p.name || p.id));
+  let written = 0;
 
-  try {
-    // 1. Puxa dados da API
-    const [productsRes, ordersRes, settingsRes] = await Promise.all([
-      fetch("/api/products", { credentials: "include" })
-        .then((r) => (r.ok ? r.json() : { products: [] }))
-        .catch(() => ({ products: [] })),
-      fetch("/api/orders", { credentials: "include" })
-        .then((r) => (r.ok ? r.json() : { orders: [] }))
-        .catch(() => ({ orders: [] })),
-      fetch("/api/settings", { credentials: "include" })
-        .then((r) => (r.ok ? r.json() : {}))
-        .catch(() => ({})),
-    ]);
+  for (let i = 0; i < valid.length; i += 450) {
+    const chunk = valid.slice(i, i + 450);
+    const batch = writeBatch(db);
 
-    const apiProducts: Product[] = productsRes.products || [];
-    const apiOrders: Order[] = ordersRes.orders || [];
-
-    // 2. Grava Produtos em Batch no Firestore
-    if (apiProducts.length > 0) {
-      const batch = writeBatch(db);
-      for (const prod of apiProducts) {
-        if (!prod.id) continue;
-        const ref = doc(db, "products", String(prod.id));
-        batch.set(ref, {
-          ...prod,
+    for (const item of chunk) {
+      const id = String(
+        item.id ||
+          item.slug ||
+          `prod_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      );
+      const ref = doc(db, "products", id);
+      batch.set(
+        ref,
+        {
+          ...clean(item),
+          id,
+          active: item.active !== false,
           updatedAt: serverTimestamp(),
-        }, { merge: true });
-      }
-      await batch.commit();
+        },
+        { merge: true },
+      );
     }
 
-    // 3. Grava Pedidos em Batch no Firestore
-    if (apiOrders.length > 0) {
-      const batch = writeBatch(db);
-      for (const order of apiOrders) {
-        if (!order.id) continue;
-        const ref = doc(db, "orders", String(order.id));
-        batch.set(ref, {
-          ...order,
-          updatedAt: serverTimestamp(),
-        }, { merge: true });
-      }
-      await batch.commit();
-    }
-
-    // 4. Grava Configurações
-    if (settingsRes && (settingsRes.whatsapp !== undefined || settingsRes.retailPercentage !== undefined)) {
-      await setDoc(doc(db, "settings", "general"), {
-        whatsapp: settingsRes.whatsapp || "",
-        retailPercentage: Number(settingsRes.retailPercentage) || 0,
-        wholesalePercentage: Number(settingsRes.wholesalePercentage) || 0,
-        updatedAt: serverTimestamp(),
-      }, { merge: true });
-    }
-
-    const meta: SyncMetadata = {
-      lastSyncAt: new Date().toISOString(),
-      productCount: apiProducts.length,
-      orderCount: apiOrders.length,
-      status: "success",
-    };
-
-    await setDoc(metaRef, meta, { merge: true });
-    return meta;
-  } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : "Erro desconhecido ao sincronizar";
-    const meta: SyncMetadata = {
-      lastSyncAt: null,
-      productCount: 0,
-      orderCount: 0,
-      status: "error",
-      errorMessage: errorMsg,
-    };
-    await setDoc(metaRef, meta, { merge: true }).catch(() => {});
-    throw error;
+    await batch.commit();
+    written += chunk.length;
   }
+
+  return written;
 }
 
 // ==========================================
@@ -158,35 +115,113 @@ export async function getSettingsFromFirebase(): Promise<AppSettings> {
 // 3. LISTENERS EM TEMPO REAL (onSnapshot)
 // ==========================================
 
+export async function getSyncStatus(): Promise<SyncMetadata | null> {
+  try {
+    const ref = doc(db, "metadata", "sync");
+    const snap = await getDoc(ref);
+    return snap.exists() ? (snap.data() as SyncMetadata) : null;
+  } catch {
+    return null;
+  }
+}
+
 export function subscribeProducts(onChange: (products: Product[]) => void): Unsubscribe {
-  const col = collection(db, "products");
-  return onSnapshot(col, (snap) => {
-    const list: Product[] = [];
-    snap.forEach((d) => list.push({ id: d.id, ...d.data() } as Product));
-    onChange(list);
-  }, (err) => {
-    console.warn("Erro ao escutar produtos do Firebase:", err);
-  });
+  let unsub: Unsubscribe | null = null;
+  let active = true;
+  const timer = setTimeout(() => {
+    if (!active) return;
+    try {
+      const col = collection(db, "products");
+      unsub = onSnapshot(
+        col,
+        (snap) => {
+          if (!active) return;
+          const list: Product[] = [];
+          snap.forEach((d) => list.push({ id: d.id, ...d.data() } as Product));
+          onChange(list);
+        },
+        (err) => console.warn("Erro ao escutar produtos do Firebase:", err),
+      );
+    } catch (e) {
+      console.warn("subscribeProducts error:", e);
+    }
+  }, 100);
+
+  return () => {
+    active = false;
+    clearTimeout(timer);
+    if (unsub) {
+      try {
+        unsub();
+      } catch {}
+    }
+  };
 }
 
 export function subscribeOrders(onChange: (orders: Order[]) => void): Unsubscribe {
-  const col = collection(db, "orders");
-  return onSnapshot(col, (snap) => {
-    const list: Order[] = [];
-    snap.forEach((d) => list.push({ id: d.id, ...d.data() } as Order));
-    onChange(list);
-  }, (err) => {
-    console.warn("Erro ao escutar pedidos do Firebase:", err);
-  });
+  let unsub: Unsubscribe | null = null;
+  let active = true;
+  const timer = setTimeout(() => {
+    if (!active) return;
+    try {
+      const col = collection(db, "orders");
+      unsub = onSnapshot(
+        col,
+        (snap) => {
+          if (!active) return;
+          const list: Order[] = [];
+          snap.forEach((d) => list.push({ id: d.id, ...d.data() } as Order));
+          onChange(list);
+        },
+        (err) => console.warn("Erro ao escutar pedidos do Firebase:", err),
+      );
+    } catch (e) {
+      console.warn("subscribeOrders error:", e);
+    }
+  }, 100);
+
+  return () => {
+    active = false;
+    clearTimeout(timer);
+    if (unsub) {
+      try {
+        unsub();
+      } catch {}
+    }
+  };
 }
 
 export function subscribeSyncStatus(onChange: (meta: SyncMetadata) => void): Unsubscribe {
-  const ref = doc(db, "metadata", "sync");
-  return onSnapshot(ref, (snap) => {
-    if (snap.exists()) {
-      onChange(snap.data() as SyncMetadata);
+  let unsub: Unsubscribe | null = null;
+  let active = true;
+  const timer = setTimeout(() => {
+    if (!active) return;
+    try {
+      const ref = doc(db, "metadata", "sync");
+      unsub = onSnapshot(
+        ref,
+        (snap) => {
+          if (!active) return;
+          if (snap.exists()) {
+            onChange(snap.data() as SyncMetadata);
+          }
+        },
+        (err) => console.warn("Firestore sync status error:", err),
+      );
+    } catch (e) {
+      console.warn("subscribeSyncStatus error:", e);
     }
-  }, () => {});
+  }, 100);
+
+  return () => {
+    active = false;
+    clearTimeout(timer);
+    if (unsub) {
+      try {
+        unsub();
+      } catch {}
+    }
+  };
 }
 
 // ==========================================
@@ -197,10 +232,15 @@ export async function saveProductToFirebase(product: Partial<Product> & { id?: s
   const id = product.id || String(Date.now());
   const ref = doc(db, "products", id);
   await setDoc(ref, {
-    ...product,
+    ...clean(product),
     id,
     updatedAt: serverTimestamp(),
   }, { merge: true });
+}
+
+export async function deleteProductFromFirebase(id: string): Promise<void> {
+  const ref = doc(db, "products", String(id));
+  await deleteDoc(ref);
 }
 
 export async function saveOrderToFirebase(order: Partial<Order> & { id?: string }): Promise<void> {

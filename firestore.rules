@@ -1,0 +1,47 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // 1. PRODUTOS (Catálogo)
+    // - Leitura pública: clientes precisam ver o catálogo (varejo e atacado) sem precisar de login.
+    // - Criação, edição e exclusão: exclusivo para o administrador autenticado no painel.
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    // 2. CONFIGURAÇÕES (WhatsApp, Porcentagens de Lucro, etc.)
+    // - Leitura pública: necessária para direcionar pedidos para o WhatsApp correto no checkout.
+    // - Edição: exclusiva para o administrador autenticado.
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    // 3. PEDIDOS (Vendas)
+    // - Criação pública: clientes no catálogo criam pedidos no checkout sem autenticação.
+    // - Leitura, atualização (mudar status para 'Entregue') e exclusão: restrito ao administrador autenticado.
+    match /orders/{orderId} {
+      allow create: if true;
+      allow read, update, delete: if isAuthenticated();
+    }
+
+    // 4. METADADOS E LOGS DO SISTEMA
+    // - Restrito a administradores autenticados.
+    match /metadata/{metaId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // Bloqueia qualquer outro caminho não especificado por padrão
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+

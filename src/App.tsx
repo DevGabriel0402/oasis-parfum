@@ -1,4 +1,4 @@
-import { FormEvent, lazy, Suspense, useEffect, useState } from "react";
+import { Component, FormEvent, lazy, Suspense, useEffect, useState, type ReactNode } from "react";
 import { Skeleton } from "./components/ui/skeleton";
 import { AnimatePresence, motion } from "motion/react";
 import {
@@ -21,6 +21,7 @@ import {
   FiCopy,
   FiDatabase,
   FiDollarSign,
+  FiFileText,
   FiGrid,
   FiHome,
   FiHash,
@@ -38,6 +39,7 @@ import {
   FiSettings,
   FiShare2,
   FiShoppingBag,
+  FiTrash2,
   FiTrendingUp,
   FiUser,
   FiUsers,
@@ -49,11 +51,26 @@ import CatalogCart from "./CatalogCart";
 import type { CheckoutCustomer } from "./CheckoutDialog";
 import OrderDetailsDialog from "./OrderDetailsDialog";
 import ProductDetailsModal from "./ProductDetailsModal";
-import CatalogPdfActions from "./CatalogPdfGenerator";
-import { syncApiToFirebase, subscribeSyncStatus, type SyncMetadata } from "./lib/firebaseService";
+import CsvImportModal from "./CsvImportModal";
+import { auth } from "./lib/firebase";
+import { onAuthStateChanged } from "firebase/auth";
+import { normalizeImageUrl } from "./lib/utils";
 
+const CatalogPdfActions = lazy(() => import("./CatalogPdfGenerator"));
 
-const Assistant = lazy(() => import("./Assistant"));
+class SafeBoundary extends Component<{ children: ReactNode; fallback?: ReactNode }, { hasError: boolean }> {
+  state = { hasError: false };
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(err: unknown) {
+    console.warn("Component load suppressed by SafeBoundary:", err);
+  }
+  render() {
+    if (this.state.hasError) return this.props.fallback || null;
+    return this.props.children;
+  }
+}
 
 const money = (value: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
@@ -84,10 +101,10 @@ function useHeaderScrolled(threshold = 10) {
 export default function App() {
   const [status, setStatus] = useState<"loading" | "in" | "out">("loading");
   useEffect(() => {
-    api
-      .session()
-      .then((r) => setStatus(r.authenticated ? "in" : "out"))
-      .catch(() => setStatus("out"));
+    const unsub = onAuthStateChanged(auth, (user) => {
+      setStatus(user ? "in" : "out");
+    });
+    return () => unsub();
   }, []);
   if (status === "loading")
     return (
@@ -130,7 +147,8 @@ function Brand({ collapsed }: { collapsed?: boolean }) {
   );
 }
 function Login({ done }: { done: () => void }) {
-  const [password, setPassword] = useState(""),
+  const [email, setEmail] = useState(""),
+    [password, setPassword] = useState(""),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
   async function submit(e: FormEvent) {
@@ -138,7 +156,7 @@ function Login({ done }: { done: () => void }) {
     setBusy(true);
     setError("");
     try {
-      await api.login(password);
+      await api.login(email, password);
       done();
     } catch (x) {
       setError(x instanceof Error ? x.message : "Erro ao entrar.");
@@ -157,14 +175,28 @@ function Login({ done }: { done: () => void }) {
         </div>
         <form onSubmit={submit}>
           <label>
-            Senha de acesso
+            E-mail
+            <input
+              type="email"
+              autoComplete="username"
+              placeholder="voce@exemplo.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={busy}
+              required
+              autoFocus
+            />
+          </label>
+          <label>
+            Senha
             <input
               type="password"
+              autoComplete="current-password"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={busy}
-              autoFocus
+              required
             />
           </label>
           <button className="button primary" disabled={busy}>
@@ -267,9 +299,6 @@ function Shell({ done }: { done: () => void }) {
           </motion.div>
         </AnimatePresence>
       </main>
-      <Suspense fallback={null}>
-        <Assistant />
-      </Suspense>
     </div>
   );
 }
@@ -291,12 +320,12 @@ function PageHead(p: {
     </div>
   );
 }
-function Notice({ message }: { message: string }) {
+function Notice({ message, title = "Aviso do sistema" }: { message: string; title?: string }) {
   return (
     <div className="notice">
       <FiSettings />
       <div>
-        <b>Conecte a planilha</b>
+        <b>{title}</b>
         <p>{message}</p>
       </div>
     </div>
@@ -385,7 +414,7 @@ function Dashboard() {
           icon={<FiTrendingUp />}
           label="Vendas registradas"
           value={loading ? <Skeleton className="h-7 w-[120px] my-1" /> : money(total)}
-          hint="total da planilha"
+          hint="total em vendas"
         />
         <Stat
           icon={<FiShoppingBag />}
@@ -500,6 +529,7 @@ function Products() {
   const [products, setProducts] = useState<Product[]>([]),
     [query, setQuery] = useState(""),
     [editing, setEditing] = useState<Partial<Product> | null>(null),
+    [csvOpen, setCsvOpen] = useState(false),
     [error, setError] = useState(""),
     [loading, setLoading] = useState(true);
   function load() {
@@ -526,8 +556,29 @@ function Products() {
         title="Produtos"
         description="Gerencie fragrâncias, preços e disponibilidade."
         action={
-          <div style={{ display: "flex", gap: "10px" }}>
-            {products.length > 0 && <CatalogPdfActions products={products} />}
+          <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+            <button
+              type="button"
+              className="button soft"
+              onClick={() => setCsvOpen(true)}
+              title="Importar catálogo em lote via planilha Excel (.xlsx, .xls) ou .csv"
+            >
+              <FiFileText /> Importar Excel / CSV
+            </button>
+            <button
+              type="button"
+              className="button primary"
+              onClick={() => setEditing({ ...blank, id: "" })}
+            >
+              <FiPlus /> Novo produto
+            </button>
+            {products.length > 0 && (
+              <SafeBoundary>
+                <Suspense fallback={null}>
+                  <CatalogPdfActions products={products} />
+                </Suspense>
+              </SafeBoundary>
+            )}
           </div>
         }
       />
@@ -563,16 +614,22 @@ function Products() {
         ) : shown.length ? (
           <div className="product-grid">
             {shown.map((p) => (
-              <div className="product-card" key={p.id}>
+              <div
+                className="product-card"
+                key={p.id}
+                onClick={() => setEditing(p)}
+                style={{ cursor: "pointer" }}
+                title="Clique para editar"
+              >
                 <div className="product-image">
-                  {p.image ? <img src={p.image} alt="" /> : <span>O</span>}
+                  {p.image ? <img src={normalizeImageUrl(p.image)} alt="" /> : <span>O</span>}
                   {p.featured && <em>Destaque</em>}
                 </div>
                 <div className="product-info">
                   <small>{p.brand || p.category}</small>
                   <h3>{p.name || "Produto sem nome"}</h3>
                   <div>
-                    <strong>{money(p.costPrice || 0)}</strong>
+                    <strong>{money(p.costPrice || p.retailPrice || 0)}</strong>
                     <span>{p.stock} un.</span>
                   </div>
                 </div>
@@ -582,8 +639,8 @@ function Products() {
         ) : (
           <Empty
             icon={<FiPackage />}
-            title="Nenhum produto"
-            text="Adicione produtos na sua planilha do Google para exibí-los aqui."
+            title="Nenhum produto cadastrado"
+            text="Cadastre fragrâncias manualmente ou clique em 'Importar Excel / CSV' para carregar sua planilha de produtos."
           />
         )}
       </section>
@@ -596,6 +653,12 @@ function Products() {
               setEditing(null);
               load();
             }}
+          />
+        )}
+        {csvOpen && (
+          <CsvImportModal
+            close={() => setCsvOpen(false)}
+            onSuccess={() => load()}
           />
         )}
       </AnimatePresence>
@@ -625,7 +688,14 @@ function ProductModal({
     e.preventDefault();
     setBusy(true);
     try {
-      await api.saveProduct(form, Boolean(product.id));
+      await api.saveProduct(
+        {
+          ...form,
+          image: normalizeImageUrl(form.image),
+          inspirationImage: normalizeImageUrl(form.inspirationImage),
+        },
+        Boolean(product.id),
+      );
       saved();
     } catch (x) {
       setError(x instanceof Error ? x.message : "Erro ao salvar.");
@@ -750,14 +820,37 @@ function ProductModal({
           </label>
         </div>
         {error && <p className="form-error">{error}</p>}
-        <div className="modal-actions">
-          <button type="button" className="button ghost" onClick={close}>
-            Cancelar
-          </button>
-          <button className="button primary" disabled={busy}>
-            {busy ? "Salvando..." : "Salvar produto"}
-            <FiCheck />
-          </button>
+        <div className="modal-actions" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          {product.id ? (
+            <button
+              type="button"
+              className="button ghost"
+              onClick={async () => {
+                if (!window.confirm(`Tem certeza que deseja excluir o produto "${form.name}"?`)) return;
+                setBusy(true);
+                try {
+                  await api.deleteProduct(product.id!);
+                  saved();
+                } catch (x) {
+                  setError(x instanceof Error ? x.message : "Erro ao excluir.");
+                  setBusy(false);
+                }
+              }}
+              disabled={busy}
+              style={{ color: "#ef4444", borderColor: "#fca5a5" }}
+            >
+              <FiTrash2 /> Excluir
+            </button>
+          ) : <span />}
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button type="button" className="button ghost" onClick={close} disabled={busy}>
+              Cancelar
+            </button>
+            <button className="button primary" disabled={busy}>
+              {busy ? "Salvando..." : "Salvar produto"}
+              <FiCheck />
+            </button>
+          </div>
         </div>
       </motion.form>
     </motion.div>
@@ -1026,28 +1119,10 @@ function Settings() {
     [pricingBusy, setPricingBusy] = useState(false),
     [pricingError, setPricingError] = useState(""),
     [pricingSuccess, setPricingSuccess] = useState(""),
-    [syncMeta, setSyncMeta] = useState<SyncMetadata | null>(null),
-    [syncing, setSyncing] = useState(false),
-    [syncFeedback, setSyncFeedback] = useState("");
+    [userEmail, setUserEmail] = useState("");
 
   useEffect(() => {
-    const unsub = subscribeSyncStatus((meta) => setSyncMeta(meta));
-    return () => unsub();
-  }, []);
-
-  async function handleSyncFirebase() {
-    setSyncing(true);
-    setSyncFeedback("");
-    try {
-      const result = await syncApiToFirebase();
-      setSyncFeedback(`Sincronizado com sucesso! ${result.productCount} produtos e ${result.orderCount} pedidos salvos no Firebase.`);
-    } catch (err) {
-      setSyncFeedback(err instanceof Error ? err.message : "Erro ao sincronizar com o Firebase.");
-    } finally {
-      setSyncing(false);
-    }
-  }
-  useEffect(() => {
+    api.currentEmail().then(setUserEmail);
     api
       .settings()
       .then((data) => {
@@ -1059,7 +1134,7 @@ function Settings() {
         setWhatsappError(
           reason instanceof Error
             ? reason.message
-            : "Não foi possível carregar o WhatsApp.",
+            : "Não foi possível carregar as configurações.",
         ),
       );
   }, []);
@@ -1286,64 +1361,36 @@ function Settings() {
           </form>
         </section>
         <section className="panel">
-          <PanelTitle title="Firebase Firestore" />
+          <PanelTitle title="Cloud SaaS (Firebase)" />
           <div className="setting-row">
             <FiDatabase />
             <div>
               <b>oasis-imports.firebaseapp.com</b>
-              <p>Base de dados concentrada e tempo real.</p>
+              <p>Banco de dados Cloud Firestore integrado e em tempo real.</p>
             </div>
           </div>
-          {syncMeta?.lastSyncAt && (
-            <div className="setting-row">
-              <FiCheck />
-              <div>
-                <b>Última sincronização</b>
-                <p>
-                  {new Date(syncMeta.lastSyncAt).toLocaleString("pt-BR")} •{" "}
-                  {syncMeta.productCount} produtos • {syncMeta.orderCount} pedidos
-                </p>
-              </div>
+          <div className="setting-row">
+            <FiCheck />
+            <div>
+              <b>Catálogo 100% Firebase</b>
+              <p>Produtos, pedidos e configurações sincronizados nativamente.</p>
             </div>
-          )}
-          {syncFeedback && (
-            <p className="form-success" role="status" style={{ marginTop: "10px" }}>
-              <FiCheck />
-              {syncFeedback}
-            </p>
-          )}
-          <button
-            type="button"
-            className="button primary"
-            onClick={handleSyncFirebase}
-            disabled={syncing}
-            style={{ marginTop: "12px", width: "100%" }}
-          >
-            <FiRefreshCw className={syncing ? "spin" : ""} />
-            {syncing ? "Sincronizando com o Firebase..." : "Sincronizar Dados da API com o Firebase"}
-          </button>
+          </div>
         </section>
         <section className="panel">
-          <PanelTitle title="Segurança" />
+          <PanelTitle title="Segurança & Acesso" />
           <div className="setting-row">
-            <FiCheck />
+            <FiUser />
             <div>
-              <b>Sessão persistente</b>
-              <p>Cookie seguro e inacessível por JavaScript.</p>
+              <b>Administrador Conectado</b>
+              <p>{userEmail || "gabriellucas2301@gmail.com"}</p>
             </div>
           </div>
           <div className="setting-row">
             <FiCheck />
             <div>
-              <b>Senha protegida</b>
-              <p>Somente o hash bcrypt é armazenado na planilha.</p>
-            </div>
-          </div>
-          <div className="setting-row">
-            <span className="status-dot" />
-            <div>
-              <b>Google Sheets conectado</b>
-              <p>Autenticação federada sem chave privada.</p>
+              <b>Firebase Authentication</b>
+              <p>Login seguro por e-mail e senha gerenciado pelo Firebase Auth.</p>
             </div>
           </div>
         </section>
@@ -1402,8 +1449,10 @@ function PublicCatalog() {
   const brands = Array.from(new Set(products.map((p) => p.brand).filter(Boolean))).sort();
   const count = Object.values(cart).reduce((a, b) => a + b, 0);
   const price = (p: Product) => {
-    const rawPrice = Number((p as Product & { price: number }).price || p.retailPrice);
-    return Math.round(rawPrice / 5) * 5;
+    const custom = (p as Product & { price?: number }).price;
+    if (typeof custom === "number" && custom > 0) return custom;
+    if (isWholesale) return Number(p.wholesalePrice || p.retailPrice || 0);
+    return Number(p.retailPrice || p.wholesalePrice || 0);
   };
 
   const shown = products
@@ -1606,7 +1655,7 @@ function PublicCatalog() {
             {shown.map((p) => (
               <article className="shop-card" key={p.id}>
                 <div className="shop-image" onClick={() => setDetailsOpen(p)} style={{ cursor: "pointer" }}>
-                  {p.image ? <img src={p.image} alt={p.name} /> : <span>O</span>}
+                  {p.image ? <img src={normalizeImageUrl(p.image)} alt={p.name} /> : <span>O</span>}
                   {p.featured && <em>DESTAQUE</em>}
                 </div>
                 <small>{p.brand || p.category}</small>
